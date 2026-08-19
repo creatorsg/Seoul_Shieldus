@@ -50,3 +50,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+### 프로젝트
+# Streamlit 정적 서빙용으로 런타임에 생성되는 파일 (네이버 지도 HTML)
+frontend/static/*.html
