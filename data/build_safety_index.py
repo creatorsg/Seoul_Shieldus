@@ -1,15 +1,14 @@
+
 from pathlib import Path
 
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-
 DATA_DIR = Path(__file__).resolve().parent
 GEOJSON_PATH = DATA_DIR / "seoul_districts.geojson"
 OUTPUT_PATH = DATA_DIR / "processed" / "seoul_safety_index.json"
 
-# 가중치: 계산식에 박아두지 않고 상수로 분리
-
+# 가중치 설계: 범죄율 50% : (CCTV+파출소) 30% : (안심귀갓길+가로등) 20%
 WEIGHTS = {
     "범죄율": 0.50,
     "CCTV": 0.15,
@@ -19,8 +18,8 @@ WEIGHTS = {
 }
 assert abs(sum(WEIGHTS.values()) - 1.0) < 1e-9, "가중치 합이 1.0이 아닙니다"
 
-POSITIVE_COLS = ["CCTV", "파출소", "안심귀갓길", "가로등"]  # 높을수록 안전
-NEGATIVE_COLS = ["범죄율"]  # 높을수록 위험
+POSITIVE_COLS = ["CCTV", "파출소", "안심귀갓길", "가로등"]
+NEGATIVE_COLS = ["범죄율"]
 
 RENAME_MAP = {
     "자치구": "구",
@@ -31,15 +30,8 @@ RENAME_MAP = {
 }
 
 
-# 데이터 로딩 - 지금은 더미, 나중엔 이 함수 안만 실제 수집 데이터로 교체해야 합니다.
 def load_raw_data() -> pd.DataFrame:
-    """
-    자치구별 원본 지표를 반환.
 
-    지금  : 팀원 데이터 수집 전까지 쓰는 더미 값 (5개 구만)
-    나중  : 각자 수집한 CSV를 자치구 기준으로 merge 한 결과로 교체
-            예) pd.read_csv(BASE_DIR / "data" / "raw" / "seoul_infra.csv")
-    """
     dummy_data = {
         "자치구": ["강남구", "관악구", "종로구", "노원구", "마포구"],
         "범죄율": [3.5, 4.2, 2.1, 1.8, 2.9],
@@ -52,7 +44,7 @@ def load_raw_data() -> pd.DataFrame:
 
 
 def load_official_district_names() -> set:
-
+    """data/seoul_districts.geojson 의 25개 자치구 공식 이름 집합을 반환한다."""
     import json
 
     with open(GEOJSON_PATH, encoding="utf-8") as f:
@@ -60,7 +52,6 @@ def load_official_district_names() -> set:
     return {feat["properties"]["name"] for feat in geo["features"]}
 
 
-# 정규화 + 가중합 계산
 def compute_safety_index(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
@@ -76,7 +67,6 @@ def compute_safety_index(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values("치안안전지수", ascending=False).reset_index(drop=True)
 
 
-# 결과값 저장
 def save_output(df: pd.DataFrame) -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -93,9 +83,9 @@ def main() -> None:
         official_names = load_official_district_names()
         missing = set(df["자치구"]) - official_names
         if missing:
-            print(f"geojson에 없는 구 이름 발견 (표기 확인 필요): {missing}")
+            print(f"경고: geojson에 없는 구 이름 발견 (표기 확인 필요): {missing}")
     except FileNotFoundError:
-        print(f"{GEOJSON_PATH} 를 찾을 수 없어 구 이름 검증을 건너뜁니다.")
+        print(f"경고: {GEOJSON_PATH} 를 찾을 수 없어 구 이름 검증을 건너뜁니다.")
 
     df_scored = compute_safety_index(df)
     save_output(df_scored)
