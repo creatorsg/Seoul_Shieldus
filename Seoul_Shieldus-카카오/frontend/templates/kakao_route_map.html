@@ -1,0 +1,58 @@
+<div id="kakao-route-map" style="width:100%;height:${height}px;"></div>
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${app_key}&autoload=false"></script>
+<script>
+    if (typeof kakao !== 'undefined' && kakao.maps) {
+        kakao.maps.load(function() {
+            var container = document.getElementById('kakao-route-map');
+            var options = {
+                center: new kakao.maps.LatLng(37.5665, 126.9780),
+                level: 7
+            };
+            var map = new kakao.maps.Map(container, options);
+
+            var typeStyles = ${type_styles_json};
+            var markersByType = ${markers_by_type_json};
+            var destinationName = ${destination_name_json};
+            var myLocation = ${my_location_json};
+            var routeCoords = ${route_json};
+
+            Object.keys(markersByType).forEach(function(type) {
+                markersByType[type].forEach(function(f) {
+                    var isDestination = f.name === destinationName;
+                    new kakao.maps.Marker({
+                        position: new kakao.maps.LatLng(f.lat, f.lng),
+                        map: map,
+                        title: f.name
+                    });
+                });
+            });
+
+            if (myLocation) {
+                var myLatLng = new kakao.maps.LatLng(myLocation.lat, myLocation.lng);
+                new kakao.maps.Marker({ position: myLatLng, map: map, title: '내 위치' });
+                map.setCenter(myLatLng);
+            }
+
+            if (routeCoords && routeCoords.length) {
+                var linePath = routeCoords.map(function(p) {
+                    return new kakao.maps.LatLng(p.lat, p.lng);
+                });
+                var polyline = new kakao.maps.Polyline({
+                    path: linePath,
+                    strokeWeight: 5,
+                    strokeColor: '#1E88E5',
+                    strokeOpacity: 0.85
+                });
+                polyline.setMap(map);
+
+                var bounds = new kakao.maps.LatLngBounds();
+                linePath.forEach(function(p) { bounds.extend(p); });
+                map.setBounds(bounds);
+            }
+        });
+    } else {
+        console.error("Kakao maps SDK load failed.");
+        var el = document.getElementById('kakao-route-map');
+        if (el) { el.innerHTML = '<div style="padding:20px;color:#d32f2f;background:#ffebee;border-radius:4px;">Kakao 지도 SDK를 로드하지 못했습니다. API 키 또는 도메인 설정을 확인하세요.</div>'; }
+    }
+</script>
