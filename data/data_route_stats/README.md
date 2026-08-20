@@ -6,8 +6,9 @@
 data_route_stats/
 ├── raw/            # 원본 데이터
 └── processed/
-    ├── saferoute_seoul.csv   # 안심귀갓길 현황
-    └── stats_seoul.csv       # 인구·면적 통계
+    ├── 3. saferoute_seoul_location.csv # 안심귀갓길 시설물 위치
+    ├── 3. saferoute_seoul.csv   # 안심귀갓길 현황
+    └── 4. stats_seoul.csv       # 인구·면적 통계
 ```
  
 ## saferoute_seoul.csv
