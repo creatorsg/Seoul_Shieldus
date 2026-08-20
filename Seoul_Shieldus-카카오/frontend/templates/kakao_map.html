@@ -1,8 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+</head>
+<body>
 <div id="marker-filters" style="margin-bottom:8px;">${filter_controls_html}</div>
 <div id="kakao-map" style="width:100%;height:${height}px;"></div>
 <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${app_key}&autoload=false"></script>
 <script>
-    if (typeof kakao !== 'undefined' && kakao.maps) {
+    function renderMap() {
+        if (typeof kakao === 'undefined' || !kakao.maps) {
+            console.error("Kakao maps SDK load failed.");
+            var el = document.getElementById('kakao-map');
+            if (el) { el.innerHTML = '<div style="padding:20px;color:#d32f2f;background:#ffebee;border-radius:4px;">Kakao 지도 SDK를 로드하지 못했습니다. API 키 또는 도메인 설정을 확인하세요.</div>'; }
+            return;
+        }
         kakao.maps.load(function() {
             var container = document.getElementById('kakao-map');
             var options = {
@@ -54,9 +67,19 @@
                 });
             }
         });
+    }
+
+    if (typeof kakao !== 'undefined' && kakao.maps) {
+        renderMap();
     } else {
-        console.error("Kakao maps SDK load failed.");
-        var el = document.getElementById('kakao-map');
-        if (el) { el.innerHTML = '<div style="padding:20px;color:#d32f2f;background:#ffebee;border-radius:4px;">Kakao 지도 SDK를 로드하지 못했습니다. API 키 또는 도메인 설정을 확인하세요.</div>'; }
+        var sdkScript = document.querySelector('script[src*="dapi.kakao.com"]');
+        if (sdkScript) {
+            sdkScript.onload = renderMap;
+            sdkScript.onerror = function() { renderMap(); };
+        } else {
+            renderMap();
+        }
     }
 </script>
+</body>
+</html>

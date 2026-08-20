@@ -34,8 +34,21 @@ from styles import (
 )
 
 load_dotenv(BASE_DIR / ".env")
-KAKAO_MAP_APP_KEY = os.getenv("KAKAO_MAP_APP_KEY")
-NAVER_MAPS_CLIENT_ID = os.getenv("NAVER_MAPS_CLIENT_ID")
+
+def get_secret(name: str):
+    value = os.getenv(name)
+    if value:
+        return value
+    try:
+        value = st.secrets.get(name)
+        if value:
+            return value
+    except Exception:
+        pass
+    return None
+
+KAKAO_MAP_APP_KEY = get_secret("KAKAO_MAP_APP_KEY")
+NAVER_MAPS_CLIENT_ID = get_secret("NAVER_MAPS_CLIENT_ID")
 
 ROUTE_MODES = {"도보": "pedestrian", "자동차": "car"}
 
@@ -147,7 +160,11 @@ def render_facility_page(facilities) -> None:
         """,
         unsafe_allow_html=True,
     )
-    st.iframe(map_url, height=620)
+    if map_url.startswith("<") or "<div" in map_url.lower() or "<script" in map_url.lower():
+        st.components.v1.html(map_url, height=620)
+    else:
+        st.iframe(map_url, height=620)
+
     st.markdown(
         f"""
         <div style="background:#111827; border:1px solid #263449; padding:10px 16px; border-radius:6px; margin-top:12px; margin-bottom:12px; font-size:12px; color:#94A3B8;">
@@ -229,7 +246,11 @@ def render_route_page(facilities) -> None:
     elif TMAP_APP_KEY:
         st.warning("TMAP 경로를 가져오지 못했습니다. 이동수단 및 옵션을 확인하세요.")
 
-    st.iframe(map_url, height=560)
+    if map_url.startswith("<") or "<div" in map_url.lower() or "<script" in map_url.lower():
+        st.components.v1.html(map_url, height=560)
+    else:
+        st.iframe(map_url, height=560)
+
 
 
 def main() -> None:
