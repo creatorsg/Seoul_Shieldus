@@ -50,4 +50,4 @@ all_ok = (
     and len(out_of_range) == 0
     and len(dup) == 0
 )
-print("\n" + ("✅ 모든 검증 통과 — 1번 데이터 완료" if all_ok else "⚠️ 위 항목 확인 후 수정 필요"))
+print("\n" + (" 검증 통과 " if all_ok else " 위 항목 확인 후 수정 필요"))
