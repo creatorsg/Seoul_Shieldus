@@ -20,13 +20,15 @@ import streamlit as st
 from dotenv import load_dotenv
 from streamlit_js_eval import get_geolocation
 
-# app.py도 load_dotenv()를 호출하지만, 이 모듈이 app.py보다 먼저 import되면 그때는 아직
-# .env가 안 읽힌 상태라 TMAP_APP_KEY가 항상 비어버린다. import 순서에 기대지 않도록 여기서도 직접 읽는다.
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-TMAP_APP_KEY = os.getenv("TMAP_APP_KEY")
+ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 TMAP_PEDESTRIAN_URL = "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1"
 TMAP_CAR_URL = "https://apis.openapi.sk.com/tmap/routes?version=1"
+
+
+def get_tmap_app_key() -> Optional[str]:
+    load_dotenv(ENV_PATH, override=True)
+    return os.getenv("TMAP_APP_KEY")
 
 
 def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
@@ -64,7 +66,8 @@ def fetch_route(start: tuple, end: tuple, mode: str = "pedestrian") -> Optional[
         totalDistance(m)/totalTime(초)에서 변환)
     mode: "pedestrian"(도보) 또는 "car"(자동차). TMAP_APP_KEY가 없거나 호출에 실패하면 None을 반환한다.
     """
-    if not TMAP_APP_KEY:
+    tmap_app_key = get_tmap_app_key()
+    if not tmap_app_key:
         return None
 
     url = TMAP_PEDESTRIAN_URL if mode == "pedestrian" else TMAP_CAR_URL
@@ -85,7 +88,7 @@ def fetch_route(start: tuple, end: tuple, mode: str = "pedestrian") -> Optional[
         response = requests.post(
             url,
             json=payload,
-            headers={"appKey": TMAP_APP_KEY, "Content-Type": "application/json"},
+            headers={"appKey": tmap_app_key, "Content-Type": "application/json"},
             timeout=5,
         )
         response.raise_for_status()
