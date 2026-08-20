@@ -23,7 +23,20 @@ from streamlit_js_eval import get_geolocation
 # app.py도 load_dotenv()를 호출하지만, 이 모듈이 app.py보다 먼저 import되면 그때는 아직
 # .env가 안 읽힌 상태라 TMAP_APP_KEY가 항상 비어버린다. import 순서에 기대지 않도록 여기서도 직접 읽는다.
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-TMAP_APP_KEY = os.getenv("TMAP_APP_KEY")
+
+def _get_secret(name: str):
+    val = os.getenv(name)
+    if val:
+        return val
+    try:
+        val = st.secrets.get(name)
+        if val:
+            return val
+    except Exception:
+        pass
+    return None
+
+TMAP_APP_KEY = _get_secret("TMAP_APP_KEY")
 
 TMAP_PEDESTRIAN_URL = "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1"
 TMAP_CAR_URL = "https://apis.openapi.sk.com/tmap/routes?version=1"

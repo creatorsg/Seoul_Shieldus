@@ -143,23 +143,25 @@ def write_static_map(
     police: pd.DataFrame,
     street_lights: pd.DataFrame,
 ) -> str:
-    """시설 찾기 지도 HTML을 생성하고 static에 저장."""
+    """시설 찾기 지도 HTML을 생성하고 반환."""
 
-    STATIC_DIR.mkdir(exist_ok=True)
-    ROOT_STATIC_DIR.mkdir(exist_ok=True)
+    try:
+        STATIC_DIR.mkdir(exist_ok=True)
+        ROOT_STATIC_DIR.mkdir(exist_ok=True)
+        html = render_kakao_map(
+            app_key,
+            police,
+            street_lights,
+        )
+        (STATIC_DIR / FACILITY_STATIC_FILENAME).write_text(html, encoding="utf-8")
+        (ROOT_STATIC_DIR / FACILITY_STATIC_FILENAME).write_text(html, encoding="utf-8")
+    except Exception:
+        pass
 
-    html = render_kakao_map(
+    return render_kakao_map(
         app_key,
         police,
         street_lights,
-    )
-
-    (STATIC_DIR / FACILITY_STATIC_FILENAME).write_text(html, encoding="utf-8")
-    (ROOT_STATIC_DIR / FACILITY_STATIC_FILENAME).write_text(html, encoding="utf-8")
-
-    return _versioned_url(
-        FACILITY_STATIC_URL_PATH,
-        html,
     )
 
 
@@ -227,23 +229,27 @@ def write_route_map(
     destination_name: str,
     route: list,
 ) -> str:
-    """길찾기 지도 HTML 저장."""
+    """길찾기 지도 HTML 생성 및 반환."""
 
-    STATIC_DIR.mkdir(exist_ok=True)
-    ROOT_STATIC_DIR.mkdir(exist_ok=True)
+    try:
+        STATIC_DIR.mkdir(exist_ok=True)
+        ROOT_STATIC_DIR.mkdir(exist_ok=True)
+        html = render_route_map(
+            app_key,
+            police,
+            my_location,
+            destination_name,
+            route,
+        )
+        (STATIC_DIR / ROUTE_STATIC_FILENAME).write_text(html, encoding="utf-8")
+        (ROOT_STATIC_DIR / ROUTE_STATIC_FILENAME).write_text(html, encoding="utf-8")
+    except Exception:
+        pass
 
-    html = render_route_map(
+    return render_route_map(
         app_key,
         police,
         my_location,
         destination_name,
         route,
-    )
-
-    (STATIC_DIR / ROUTE_STATIC_FILENAME).write_text(html, encoding="utf-8")
-    (ROOT_STATIC_DIR / ROUTE_STATIC_FILENAME).write_text(html, encoding="utf-8")
-
-    return _versioned_url(
-        ROUTE_STATIC_URL_PATH,
-        html,
     )
