@@ -1,0 +1,62 @@
+<div id="marker-filters" style="margin-bottom:8px;">${filter_controls_html}</div>
+<div id="kakao-map" style="width:100%;height:${height}px;"></div>
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${app_key}&autoload=false"></script>
+<script>
+    if (typeof kakao !== 'undefined' && kakao.maps) {
+        kakao.maps.load(function() {
+            var container = document.getElementById('kakao-map');
+            var options = {
+                center: new kakao.maps.LatLng(37.5665, 126.9780),
+                level: 7
+            };
+            var map = new kakao.maps.Map(container, options);
+
+            var typeStyles = ${type_styles_json};
+            var markersByType = ${markers_by_type_json};
+            var streetLights = ${street_lights_json};
+
+            var markerLayers = {};
+            Object.keys(markersByType).forEach(function(type) {
+                markerLayers[type] = markersByType[type].map(function(f) {
+                    var m = new kakao.maps.Marker({
+                        position: new kakao.maps.LatLng(f.lat, f.lng),
+                        title: f.name
+                    });
+                    m.setMap(map);
+                    return m;
+                });
+            });
+
+            var streetLightMarkers = streetLights.map(function(p) {
+                return new kakao.maps.Marker({
+                    position: new kakao.maps.LatLng(p.lat, p.lng)
+                });
+            });
+
+            function toggleType(type, checked) {
+                if (type === '가로등') {
+                    streetLightMarkers.forEach(function(m) { m.setMap(checked ? map : null); });
+                    return;
+                }
+                (markerLayers[type] || []).forEach(function(m) { m.setMap(checked ? map : null); });
+            }
+
+            document.querySelectorAll('#marker-filters input[type=checkbox]').forEach(function(cb) {
+                toggleType(cb.value, cb.checked);
+                cb.addEventListener('change', function() { toggleType(cb.value, cb.checked); });
+            });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    var loc = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+                    new kakao.maps.Marker({ position: loc, map: map, title: '내 위치' });
+                    map.setCenter(loc);
+                });
+            }
+        });
+    } else {
+        console.error("Kakao maps SDK load failed.");
+        var el = document.getElementById('kakao-map');
+        if (el) { el.innerHTML = '<div style="padding:20px;color:#d32f2f;background:#ffebee;border-radius:4px;">Kakao 지도 SDK를 로드하지 못했습니다. API 키 또는 도메인 설정을 확인하세요.</div>'; }
+    }
+</script>
