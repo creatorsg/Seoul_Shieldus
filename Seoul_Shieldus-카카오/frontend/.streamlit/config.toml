@@ -1,0 +1,15 @@
+[server]
+enableStaticServing = true
+
+[client]
+# 배포 버튼/개발자 메뉴(재실행, 캐시 지우기 등)를 숨긴다.
+# 웹앱처럼 보이려면 "이거 Streamlit으로 만들었어요" 티가 나는 요소부터 지우는 게 첫 단계.
+toolbarMode = "minimal"
+
+[theme]
+# primaryColor를 "안전" 컨셉의 초록으로 통일한다 - 지도 마커의 파출소 색, 안심지수 색 밴드(colors.py)와
+# 같은 계열이라 선택된 탭 밑줄/라디오 버튼/버튼 등 인터랙티브 요소가 전부 같은 브랜드 색으로 보인다.
+primaryColor = "#2E7D32"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F7F5"
+textColor = "#1B1B1B"
