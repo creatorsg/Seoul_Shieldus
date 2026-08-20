@@ -22,6 +22,8 @@
         };
     }
 
+    // 마커를 클릭(모바일에선 터치)하면 주소를 클립보드에 복사해주고, 잠깐 떴다 사라지는
+    // 토스트로 알려준다. alert()는 지도 조작을 막는 모달이라 쓰지 않는다.
     function showToast(message) {
         var toast = document.createElement('div');
         toast.textContent = message;
