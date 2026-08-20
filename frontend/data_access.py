@@ -16,7 +16,7 @@ app.py는 이 모듈의 함수만 호출해서 데이터를 얻는다. 이렇게
   범죄안전_점수   : int/float, 0~100
 
 get_facility_markers()가 반환하는 df 컬럼 고정:
-  이름(str), 위도(float), 경도(float), 종류(str)
+  이름(str), 구(str), 주소(str), 종류(str), 위도(float), 경도(float)
 
 get_cctv_stats()가 반환하는 df 컬럼 고정:
   구(str), 총_CCTV(int), 방범_합계(int),
@@ -59,8 +59,15 @@ SAFETY_INDEX_COLUMNS = [
     "구", "안심지수", "CCTV_점수", "귀갓길_점수", "파출소_접근성", "가로등_점수", "범죄안전_점수",
 ]
 
-JIGUDAE_RENAME = {"station_name": "이름", "lat": "위도", "lng": "경도", "type": "종류"}
-JIGUDAE_COLUMNS = ["이름", "위도", "경도", "종류"]
+JIGUDAE_RENAME = {
+    "station_name": "이름",
+    "lat": "위도",
+    "lng": "경도",
+    "type": "종류",
+    "district": "구",
+    "address": "주소",
+}
+JIGUDAE_COLUMNS = ["이름", "구", "주소", "종류", "위도", "경도"]
 
 STREET_LIGHT_RENAME = {"management_id": "이름", "lat": "위도", "lng": "경도"}
 STREET_LIGHT_COLUMNS = ["이름", "위도", "경도"]
@@ -187,7 +194,16 @@ def _dummy_facility_markers(geo: dict) -> pd.DataFrame:
     for feat in geo["features"]:
         name = feat["properties"]["name"]
         lat, lng = _polygon_centroid(feat["geometry"])
-        rows.append({"이름": f"{name} 대표지점(더미)", "위도": lat, "경도": lng, "종류": "더미"})
+        rows.append(
+            {
+                "이름": f"{name} 대표지점(더미)",
+                "구": name,
+                "주소": "-",
+                "종류": "더미",
+                "위도": lat,
+                "경도": lng,
+            }
+        )
     return pd.DataFrame(rows)
 
 

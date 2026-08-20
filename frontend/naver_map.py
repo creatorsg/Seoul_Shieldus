@@ -128,11 +128,15 @@ def _cleanup_old_versions(stem: str, keep_filename: str) -> None:
 
 
 def _markers_by_type(police: pd.DataFrame) -> dict:
-    """지구대/파출소 DataFrame을 종류별 {name, lat, lng} 리스트로 묶는다. 두 지도(시설/길찾기)가 같이 쓴다."""
+    """
+    지구대/파출소 DataFrame을 종류별 {name, lat, lng, address} 리스트로 묶는다.
+    두 지도(시설/길찾기)가 같이 쓴다. address는 마커를 클릭했을 때 주소를 복사해주는
+    기능(templates의 copyAddressToClipboard)에 쓰인다.
+    """
     return {
-        type_name: group.rename(columns={"위도": "lat", "경도": "lng", "이름": "name"})[
-            ["name", "lat", "lng"]
-        ].to_dict(orient="records")
+        type_name: group.rename(
+            columns={"위도": "lat", "경도": "lng", "이름": "name", "주소": "address"}
+        )[["name", "lat", "lng", "address"]].to_dict(orient="records")
         for type_name, group in police.groupby("종류")
     }
 

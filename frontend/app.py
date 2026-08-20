@@ -8,6 +8,7 @@
 고르는 앱 내비게이션 역할을 하게 했다 (웹앱처럼 보이려는 디자인 방향).
 """
 
+import copy
 import os
 
 import folium
@@ -19,6 +20,7 @@ from streamlit_js_eval import streamlit_js_eval
 from colors import score_to_color
 from data_access import (
     BASE_DIR,
+    _polygon_centroid,
     get_cctv_stats,
     get_district_scores,
     get_facility_markers,
@@ -161,7 +163,47 @@ def render_district_detail(row, cctv_stats) -> None:
     c = district_cctv.iloc[0]
     st.markdown("##### CCTV 목적별 설치 현황")
     st.caption(f"총 {c['총_CCTV']:,}대 (그중 방범 목적 {c['방범_합계']:,}대)")
-    st.bar_chart({label: c[col] for col, label in CCTV_PURPOSE_FIELDS}, height=220)
+    # sort=False가 중요하다: st.bar_chart는 기본값(sort=True)일 때 Altair가 카테고리(구매목적명)를
+    # 알아서 다시 정렬해버려서, 우리가 값(대수) 기준 내림차순으로 미리 만들어둔 dict 순서가
+    # 무시되고 조용히 다른 순서(사실상 알파벳/가나다순)로 그려진다. sort=False를 줘야 넘겨준
+    # dict 순서 그대로("많은 순") 막대가 그려진다.
+    st.bar_chart(_sorted_cctv_purpose_counts(c), height=220, sort=False)
+
+
+def _sorted_cctv_purpose_counts(c) -> dict:
+    counts = {label: c[col] for col, label in CCTV_PURPOSE_FIELDS}
+    return dict(sorted(counts.items(), key=lambda item: item[1], reverse=True))
+
+
+def _geo_with_score_properties(geo: dict, df) -> dict:
+    scores = dict(zip(df["구"], df["안심지수"]))
+    geo_copy = copy.deepcopy(geo)
+    for feat in geo_copy["features"]:
+        name = feat["properties"]["name"]
+        feat["properties"]["score"] = scores.get(name)
+    return geo_copy
+
+
+def _add_district_labels(m: "folium.Map", geo: dict) -> None:
+    """
+    자치구 이름을 각 자치구 중심점에 고정 텍스트로 올린다 (지금까지는 색으로만 구분되던 것).
+    DivIcon으로 만든 라벨이라 클릭/호버 이벤트를 가로채지 않도록 pointer-events:none을 줘서,
+    라벨 아래에 깔린 히트맵 폴리곤의 클릭/호버는 그대로 통과되게 한다.
+    """
+    for feat in geo["features"]:
+        name = feat["properties"]["name"]
+        lat, lng = _polygon_centroid(feat["geometry"])
+        folium.map.Marker(
+            [lat, lng],
+            icon=folium.DivIcon(
+                html=(
+                    '<div style="pointer-events:none;font-size:11px;font-weight:600;'
+                    'color:#212121;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;'
+                    'white-space:nowrap;transform:translate(-50%,-50%);">'
+                    f"{name}</div>"
+                )
+            ),
+        ).add_to(m)
 
 
 def render_index_page(geo: dict, df, cctv_stats) -> None:
@@ -170,6 +212,7 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
     "지역별 상세"(자치구 하나 골라서 점수 + CCTV 목적별 통계 뜯어보기) 를 토글로 전환한다.
     """
     st.header("안심지수 히트맵")
+
 
     m = folium.Map(location=[37.5665, 126.9780], zoom_start=11)
     # Leaflet은 지역(폴리곤)을 클릭 가능한 SVG <path>로 그리는데, 클릭하면 그 <path>에 브라우저
@@ -180,9 +223,14 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
     m.get_root().header.add_child(
         folium.Element("<style>.leaflet-interactive:focus { outline: none; }</style>")
     )
+    geo_scored = _geo_with_score_properties(geo, df)
     # RdYlGn: 낮은 안심지수(위험)는 빨강, 높은 안심지수(안전)는 초록으로 직관적으로 읽히는 배색.
+    # highlight=True: 마우스가 올라간(호버된) 칸의 테두리를 굵게, 채우기를 더 진하게 바꿔서
+    # "지금 이 칸을 가리키고 있다"는 게 시각적으로 보이게 한다 (folium.Choropleth 내장 기능 -
+    # 기본값은 line_weight+2, fill_opacity+0.2). 원래는 색으로 칠해진 구가 다 똑같이 밋밋해서
+    # 어느 구 위에 커서가 있는지 구분이 안 됐는데, 이 옵션 하나로 자체 해결된다.
     choropleth = folium.Choropleth(
-        geo_data=geo,
+        geo_data=geo_scored,
         data=df,
         columns=["구", "안심지수"],
         key_on="feature.properties.name",
@@ -190,13 +238,25 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
         fill_opacity=0.75,
         line_opacity=0.5,
         legend_name="안심 지수",
+        highlight=True,
     ).add_to(m)
 
-    # Choropleth가 이미 만든 geojson 레이어에 툴팁만 얹는다.
-    # 별도 GeoJson 레이어를 하나 더 추가하면 폴리곤 데이터를 브라우저로 두 번 보내는 셈이라 비효율적이다.
+    # 위 highlight=True는 "칸 자체를 강조해서 보여주는" 기능이고, 아래 툴팁/팝업은 별개로
+    # "이름/점수 텍스트를 보여주는" 기능이라 서로 안 겹친다. Choropleth가 이미 만든 geojson
+    # 레이어에 그대로 얹는다 - 별도 GeoJson 레이어를 하나 더 추가하면 폴리곤 데이터를 브라우저로
+    # 두 번 보내는 셈이라 비효율적이다. 모바일은 호버가 없으니 클릭해도 같은 정보(GeoJsonPopup)가
+    # 뜨게 둘 다 붙인다.
+    tooltip_popup_fields = ["name", "score"]
+    tooltip_popup_aliases = ["자치구", "안심지수"]
     choropleth.geojson.add_child(
-        folium.GeoJsonTooltip(fields=["name"], aliases=["자치구"])
+        folium.GeoJsonTooltip(fields=tooltip_popup_fields, aliases=tooltip_popup_aliases)
     )
+    choropleth.geojson.add_child(
+        folium.GeoJsonPopup(fields=tooltip_popup_fields, aliases=tooltip_popup_aliases)
+    )
+
+    # 색만으로는 어느 구인지 바로 안 읽혀서, 중심점에 구 이름 텍스트를 고정으로 얹는다.
+    _add_district_labels(m, geo)
 
     st_folium(m, height=550, returned_objects=[], use_container_width=True)
 
@@ -213,7 +273,19 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
         render_district_detail(df[df["구"] == selected_gu].iloc[0], cctv_stats)
 
 
-def render_facility_page(facilities) -> None:
+def _facility_display_table(facilities, df):
+    """
+    시설 찾기 표에 위도/경도 대신 사용자에게 실제로 쓸모 있는 정보(구/주소/범죄안전 점수)를 보여준다.
+    위도/경도는 애초에 지도에 마커 찍을 때 좌표로 쓰려던 값이지 사용자가 표에서 볼 이유가 없다는
+    피드백을 반영했다. df(자치구별 안심지수 점수표)의 범죄안전_점수를 "구" 기준으로 매칭해 붙인다.
+    """
+    score_by_district = dict(zip(df["구"], df["범죄안전_점수"]))
+    table = facilities[["이름", "구", "주소", "종류"]].copy()
+    table["범죄안전 점수"] = table["구"].map(score_by_district)
+    return table
+
+
+def render_facility_page(facilities, df) -> None:
     """시설 찾기 페이지: 네이버 지도 위에 지구대/파출소/가로등 마커 + 안심귀갓길 + 내 위치 표시."""
     st.header("시설 찾기")
 
@@ -228,9 +300,10 @@ def render_facility_page(facilities) -> None:
     st.iframe(map_url, height=620)
     st.caption(
         f"가로등({len(street_lights):,}개)과 안심귀갓길({len(safe_paths):,}개 노선)은 기본은 꺼져 있고, "
-        "켜면 표시됩니다. 가로등은 개수가 많아 클러스터로 묶여서 나옵니다."
+        "켜면 표시됩니다. 가로등은 개수가 많아 클러스터로 묶여서 나옵니다. "
+        "지도 위 지구대/파출소 마커를 클릭(모바일은 터치)하면 주소가 복사됩니다."
     )
-    st.dataframe(facilities, width="stretch", hide_index=True)
+    st.dataframe(_facility_display_table(facilities, df), width="stretch", hide_index=True)
 
 
 def render_route_page(facilities) -> None:
@@ -280,6 +353,7 @@ def render_route_page(facilities) -> None:
         route_info["coords"] if route_info else None,
     )
     st.iframe(map_url, height=560)
+    st.caption("지도 위 지구대/파출소 마커를 클릭(모바일은 터치)하면 주소가 복사됩니다.")
 
     if route_info:
         st.caption(
@@ -421,7 +495,7 @@ def main() -> None:
             url_path="index",
         ),
         st.Page(
-            lambda: render_facility_page(facilities),
+            lambda: render_facility_page(facilities, df),
             title="시설 찾기",
             icon="📍",
             url_path="facilities",

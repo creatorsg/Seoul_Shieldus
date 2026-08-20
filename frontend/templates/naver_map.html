@@ -23,6 +23,29 @@
         };
     }
 
+    function showToast(message) {
+        var toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+            'background:rgba(0,0,0,0.8);color:#fff;padding:10px 16px;border-radius:20px;' +
+            'font-size:13px;z-index:9999;transition:opacity 0.3s;max-width:80%;text-align:center;';
+        document.body.appendChild(toast);
+        setTimeout(function () {
+            toast.style.opacity = '0';
+            setTimeout(function () { toast.remove(); }, 300);
+        }, 1500);
+    }
+
+    function copyAddressToClipboard(name, address) {
+        var done = function () { showToast(name + ' 주소가 복사되었습니다'); };
+        var fail = function () { showToast('주소 복사에 실패했습니다: ' + address); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(address).then(done).catch(fail);
+        } else {
+            fail();
+        }
+    }
+
     function dotIcon(size, color) {
         return {
             content: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;' +
@@ -38,12 +61,18 @@
     Object.keys(markersByType).forEach(function (type) {
         var color = typeStyles[type] || '#757575';
         markerLayers[type] = markersByType[type].map(function (f) {
-            return new naver.maps.Marker({
+            var marker = new naver.maps.Marker({
                 position: new naver.maps.LatLng(f.lat, f.lng),
                 map: map,
                 title: f.name,
                 icon: pinIcon(color)
             });
+            if (f.address) {
+                naver.maps.Event.addListener(marker, 'click', function () {
+                    copyAddressToClipboard(f.name, f.address);
+                });
+            }
+            return marker;
         });
     });
 
