@@ -14,19 +14,27 @@ import folium
 import streamlit as st
 from dotenv import load_dotenv
 from streamlit_folium import st_folium
+from streamlit_js_eval import streamlit_js_eval
 
 from colors import score_to_color
 from data_access import (
     BASE_DIR,
+    get_cctv_stats,
     get_district_scores,
     get_facility_markers,
+    get_safe_paths,
     get_street_light_markers,
     load_geojson,
 )
 from naver_map import write_route_map, write_static_map
-from route_finder import TMAP_APP_KEY, fetch_route, find_nearest_facility, get_current_location
+from route_finder import fetch_route, find_nearest_facility, get_current_location, get_tmap_app_key
 
-load_dotenv(BASE_DIR / ".env")
+# override=True: load_dotenv는 기본적으로 os.environ에 이미 들어있는 값은 안 덮어쓴다.
+# 이 줄 자체는 리런마다 다시 실행되지만(app.py 최상단이라), override 없이는 "맨 처음 리런 때
+# 읽은 값"이 프로세스 안에 계속 남아있어서 .env를 나중에 고쳐도 서버를 완전히 재시작하기
+# 전까진 반영이 안 된다 - route_finder.get_tmap_app_key()에서 실제로 겪었던 것과 같은 종류의
+# 문제라 여기도 미리 막아둔다.
+load_dotenv(BASE_DIR / ".env", override=True)
 NAVER_MAPS_CLIENT_ID = os.getenv("NAVER_MAPS_CLIENT_ID")
 
 ROUTE_MODES = {"도보": "pedestrian", "자동차": "car"}
@@ -41,12 +49,68 @@ div[data-testid="stDecoration"] { display: none; }
 </style>
 """
 
+# 페이지가 바뀔 때 화면이 뚝 끊기지 않고 살짝 떠오르듯 나타나게 하는 CSS.
+# st.navigation으로 다른 페이지로 이동하면 이전 페이지의 엘리먼트가 통째로 사라지고 새 페이지
+# 엘리먼트가 새로 마운트되기 때문에, 이 애니메이션이 그 타이밍에 자동으로 재생된다.
+# (같은 페이지 안에서 위젯만 바꾸는 리런일 때는 Streamlit이 기존 엘리먼트를 재사용할 수도 있어서
+# 100% 매번 재생을 보장하진 않는다 - 완벽한 SPA 전환 효과가 아니라 "느낌만 내는" 수준.)
+#
+# ⚠ iframe(:has(iframe))이 들어있는 박스는 애니메이션 대상에서 제외한다. 네이버 지도처럼 "로드되는
+# 순간 자기 컨테이너 크기를 한 번 재서" 초기화하는 JS 위젯은, 그 순간 부모가 transform 애니메이션
+# 중이면 크기를 잘못 재거나 레이아웃이 안 잡힌 채로 초기화가 끝나버려 이후 다시 안 살아날 수 있다
+# (실제로 "시설 찾기" 지도가 이 애니메이션 때문에 안 뜨는 문제가 있어서 이렇게 제외했다).
+PAGE_TRANSITION_CSS = """
+<style>
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+div[data-testid="stMain"] div[data-testid="stElementContainer"]:not(:has(iframe)) {
+    animation: fadeSlideIn 0.28s ease-out;
+}
+</style>
+"""
+
+# GPS 위치를 기다리는 동안 보여줄 스피너.
+# st.spinner()는 "with 블록 안 코드가 실행되는 동안"만 애니메이션이 도는데, 위치 권한 대기는
+# 브라우저 응답을 기다리며 리런 사이사이에 걸쳐 있는 대기라 st.spinner로는 애니메이션이
+# 뚝뚝 끊긴다. 대신 매 리런마다 완전히 똑같은 HTML/CSS를 그리는 방식을 쓰면, 브라우저 쪽
+# CSS 애니메이션은 리런과 무관하게 계속 자연스럽게 돌아간다.
+GPS_WAIT_SPINNER_HTML = """
+<style>
+@keyframes gpsSpin { to { transform: rotate(360deg); } }
+</style>
+<div style="display:flex;align-items:center;gap:12px;padding:16px;
+            background:#F5F7F5;border-radius:8px;margin-bottom:8px;">
+  <div style="width:22px;height:22px;border-radius:50%;flex-shrink:0;
+              border:3px solid #C8E6C9;border-top-color:#2E7D32;
+              animation:gpsSpin 0.8s linear infinite;"></div>
+  <span style="font-size:14px;color:#1B1B1B;">
+    브라우저가 위치 권한을 물어보면 허용해주세요. 내 위치를 가져오는 중입니다...
+  </span>
+</div>
+"""
+
 # 자치구 상세 패널에 표시할 세부 점수 (라벨, df 컬럼명)
 DETAIL_SCORE_FIELDS = [
     ("CCTV 점수", "CCTV_점수"),
     ("귀갓길 점수", "귀갓길_점수"),
     ("파출소 접근성", "파출소_접근성"),
     ("가로등 점수", "가로등_점수"),
+    ("범죄안전 점수", "범죄안전_점수"),
+]
+
+# CCTV 목적별 통계 표시 라벨 (df 컬럼명, 라벨) - get_cctv_stats()의 CCTV_STATS_COLUMNS 중
+# "구"/"총_CCTV"/"방범_합계"를 뺀 목적별 세부 8개만 막대그래프로 보여준다.
+CCTV_PURPOSE_FIELDS = [
+    ("방범용", "방범"),
+    ("어린이보호용", "어린이보호"),
+    ("공원놀이터용", "공원/놀이터"),
+    ("무단투기단속용", "무단투기단속"),
+    ("화재감시용", "화재감시"),
+    ("교통단속용", "교통단속"),
+    ("교통정보용", "교통정보"),
+    ("기타용", "기타"),
 ]
 
 
@@ -82,22 +146,40 @@ def _render_score_bar(label: str, score: float) -> None:
     )
 
 
-def render_district_detail(row) -> None:
-    """선택된 자치구 하나의 안심지수/세부 점수를 그린다."""
+def render_district_detail(row, cctv_stats) -> None:
+    """선택된 자치구 하나의 안심지수/세부 점수 + CCTV 목적별 통계를 그린다."""
     st.markdown(f"#### {row['구']} 상세")
     st.metric("안심지수", f"{row['안심지수']}점")
     for label, col in DETAIL_SCORE_FIELDS:
         _render_score_bar(label, row[col])
 
+    if cctv_stats.empty:
+        return
+    district_cctv = cctv_stats[cctv_stats["구"] == row["구"]]
+    if district_cctv.empty:
+        return
+    c = district_cctv.iloc[0]
+    st.markdown("##### CCTV 목적별 설치 현황")
+    st.caption(f"총 {c['총_CCTV']:,}대 (그중 방범 목적 {c['방범_합계']:,}대)")
+    st.bar_chart({label: c[col] for col, label in CCTV_PURPOSE_FIELDS}, height=220)
 
-def render_index_page(geo: dict, df) -> None:
+
+def render_index_page(geo: dict, df, cctv_stats) -> None:
     """
     안심지수 히트맵 페이지: 지도를 위에 크게 띄우고, 아래에서 "전체 확인"(표) /
-    "지역별 상세"(자치구 하나 골라서 점수 뜯어보기) 를 토글로 전환한다.
+    "지역별 상세"(자치구 하나 골라서 점수 + CCTV 목적별 통계 뜯어보기) 를 토글로 전환한다.
     """
     st.header("안심지수 히트맵")
 
     m = folium.Map(location=[37.5665, 126.9780], zoom_start=11)
+    # Leaflet은 지역(폴리곤)을 클릭 가능한 SVG <path>로 그리는데, 클릭하면 그 <path>에 브라우저
+    # 포커스가 잡혀서 기본 포커스 표시(검은 네모 테두리, outline)가 뜬다 - 키보드 접근성을 위한
+    # 브라우저 기본 동작이라 folium/Leaflet 옵션으로는 못 끄고, 지도 iframe 안에 CSS를 직접
+    # 넣어야 한다. st_folium은 이 HTML을 그대로 iframe으로 렌더링하므로, <head>에 스타일을
+    # 하나 추가해서 그 포커스 테두리만 지운다.
+    m.get_root().header.add_child(
+        folium.Element("<style>.leaflet-interactive:focus { outline: none; }</style>")
+    )
     # RdYlGn: 낮은 안심지수(위험)는 빨강, 높은 안심지수(안전)는 초록으로 직관적으로 읽히는 배색.
     choropleth = folium.Choropleth(
         geo_data=geo,
@@ -128,11 +210,11 @@ def render_index_page(geo: dict, df) -> None:
         st.dataframe(ranking, width="stretch", hide_index=True)
     else:
         selected_gu = st.selectbox("자치구 선택", sorted(df["구"].tolist()))
-        render_district_detail(df[df["구"] == selected_gu].iloc[0])
+        render_district_detail(df[df["구"] == selected_gu].iloc[0], cctv_stats)
 
 
 def render_facility_page(facilities) -> None:
-    """시설 찾기 페이지: 네이버 지도 위에 지구대/파출소/가로등 마커 + 내 위치 표시."""
+    """시설 찾기 페이지: 네이버 지도 위에 지구대/파출소/가로등 마커 + 안심귀갓길 + 내 위치 표시."""
     st.header("시설 찾기")
 
     if not NAVER_MAPS_CLIENT_ID:
@@ -141,9 +223,13 @@ def render_facility_page(facilities) -> None:
 
     st.caption("브라우저가 위치 권한을 물어보면 허용해야 '내 위치'가 표시됩니다.")
     street_lights = get_street_light_markers()
-    map_url = write_static_map(NAVER_MAPS_CLIENT_ID, facilities, street_lights)
+    safe_paths = get_safe_paths()
+    map_url = write_static_map(NAVER_MAPS_CLIENT_ID, facilities, street_lights, safe_paths)
     st.iframe(map_url, height=620)
-    st.caption(f"가로등은 {len(street_lights):,}개로 많아서 기본은 꺼져 있고, 켜면 클러스터로 묶여서 표시됩니다.")
+    st.caption(
+        f"가로등({len(street_lights):,}개)과 안심귀갓길({len(safe_paths):,}개 노선)은 기본은 꺼져 있고, "
+        "켜면 표시됩니다. 가로등은 개수가 많아 클러스터로 묶여서 나옵니다."
+    )
     st.dataframe(facilities, width="stretch", hide_index=True)
 
 
@@ -159,7 +245,7 @@ def render_route_page(facilities) -> None:
 
     location = get_current_location()
     if location is None:
-        st.info("브라우저가 위치 권한을 물어보면 허용해주세요. 내 위치를 가져오는 중입니다...")
+        st.markdown(GPS_WAIT_SPINNER_HTML, unsafe_allow_html=True)
         return
     my_lat, my_lng = location
 
@@ -172,7 +258,11 @@ def render_route_page(facilities) -> None:
     )
     destination = facilities[facilities["이름"] == selected_name].iloc[0]
 
-    if not TMAP_APP_KEY:
+    # TMAP_APP_KEY를 여기서 상수로 들고 있지 않고 매번 get_tmap_app_key()로 새로 읽는다 - .env를
+    # 고친 뒤 서버를 완전히 재시작하지 않고 리런만 해도 최신 키가 바로 반영되게 하기 위해서다
+    # (route_finder.get_tmap_app_key()의 docstring에 이 문제가 왜 생기는지 자세히 적어뒀다).
+    tmap_app_key = get_tmap_app_key()
+    if not tmap_app_key:
         _warn_missing_env("TMAP_APP_KEY")
         route_info = None
     else:
@@ -196,8 +286,108 @@ def render_route_page(facilities) -> None:
             f"내 위치 → {selected_name} {mode_label} 경로: "
             f"약 {route_info['distance_km']}km, {route_info['time_min']}분 예상"
         )
-    elif TMAP_APP_KEY:
+    elif tmap_app_key:
         st.caption("경로를 가져오지 못했습니다. TMAP 앱에 해당 이동수단 상품이 등록되어 있는지 확인하세요.")
+
+
+def _restore_scroll_position(page_key: str) -> None:
+    """
+    (베스트 에포트) Streamlit은 위젯 조작 등으로 리런될 때마다 본문 스크롤을 맨 위로 되돌리는데,
+    이건 Streamlit 자체 프레임워크 동작이라 앱 코드에서 끌 수 있는 옵션이 없다. 대신
+    streamlit_js_eval로 상위 문서(window.parent)의 실제 스크롤 컨테이너(stMain)에 스크롤 위치를
+    sessionStorage에 저장했다가 복원하는 리스너를 붙여서 흉내만 낸다.
+
+    streamlit_js_eval 컴포넌트 소스를 직접 확인해보니, "직전 리런과 완전히 똑같은 JS 문자열"이면
+    재실행 자체를 건너뛰는 구조다. 그래서 매 리런마다 반드시 다시 실행되도록 key를 세션 카운터로
+    계속 바꿔서 컴포넌트를 매번 새로 마운트시킨다.
+
+    ⚠ 실제로 배포해서 써보니 이 방식이 심각한 버그를 냈었다: streamlit_js_eval처럼 "값을
+    돌려주는" 커스텀 컴포넌트는, 이전과 다른 값을 Python에 보고할 때마다 Streamlit이 그 값을
+    반영하려고 스크립트를 다시 리런시킨다. 그런데 매 리런마다 key를 새로 바꾸면 그때마다
+    "새 위젯"이 되어서 이전 리턴값 캐시가 없으니, 이 컴포넌트가 응답을 보낼 때마다 매번
+    "값이 바뀌었다"고 처리돼 리런이 또 걸리고, 그 리런이 다시 새 key를 만들고... 하는 식으로
+    사용자 조작 없이도 초당 3~4번씩 무한 리런되는 루프가 생겼다 (실측: 8초에 28번 리런).
+    이 루프가 길찾기 페이지에서 돌면 fetch_route()가 그만큼 반복 호출돼서 TMAP API가
+    429(요청 과다)를 뱉는 원인이 됐다.
+
+    고친 방법: want_output=False를 줘서 이 컴포넌트가 아예 Python에 값을 돌려보내지 않게 한다
+    (streamlit_js_eval 패키지 프론트엔드 코드 기준 - want_output이 False면 sendDataToPython
+    자체를 호출 안 함). 그러면 "리턴값이 바뀌어서 리런을 유발"할 방법이 없어지므로, key를 매번
+    바꿔서 JS를 강제로 재실행시키는 건 그대로 유지해도 안전하다 - 실행은 여전히 매 리런마다
+    되지만(스크롤 복원 자체는 계속 시도됨), 그 실행 결과가 Streamlit으로 다시 흘러들어가서
+    리런을 만드는 순환 고리만 끊었다.
+
+    ⚠ 이 세션 안에서는 iframe↔상위 문서 간 스크롤 조작을 브라우저로 직접 확인할 방법이 없었다
+    (자동화 테스트 환경 한계). 배포 후 실제 브라우저에서 한 번은 꼭 확인해봐야 한다 - 안 되더라도
+    앱이 깨지진 않고 "스크롤이 안 유지되는" 정도로 그친다.
+    """
+    st.session_state["_scroll_tick"] = st.session_state.get("_scroll_tick", 0) + 1
+    js = f"""
+    (function() {{
+        var d = window.parent.document;
+        var c = d.querySelector('[data-testid="stMain"]') || d.querySelector('[data-testid="stAppViewContainer"]');
+        if (!c) return false;
+        var storeKey = 'shieldus_scrollpos_{page_key}';
+        c.dataset.currentScrollKey = storeKey;
+        var saved = window.parent.sessionStorage.getItem(storeKey);
+        if (saved !== null) {{ c.scrollTop = parseInt(saved, 10); }}
+        if (!c.dataset.scrollListenerAttached) {{
+            c.dataset.scrollListenerAttached = "1";
+            var t = null;
+            c.addEventListener('scroll', function () {{
+                if (t) clearTimeout(t);
+                t = setTimeout(function () {{
+                    window.parent.sessionStorage.setItem(c.dataset.currentScrollKey, c.scrollTop);
+                }}, 150);
+            }});
+        }}
+        return true;
+    }})()
+    """
+    streamlit_js_eval(
+        js_expressions=js,
+        key=f"scroll_restore_{st.session_state['_scroll_tick']}",
+        want_output=False,
+    )
+
+
+def _inject_pwa_head() -> None:
+    """
+    PWA manifest/테마색 메타 태그를 <head>에 넣는다.
+
+    Streamlit 오픈소스는 <head>에 커스텀 태그를 넣는 공식 API가 없다. st.markdown(unsafe_allow_html=True)은
+    body 안에 삽입되고, <script> 태그도 innerHTML로 넣으면 브라우저가 실행을 안 해줘서, streamlit_js_eval로
+    상위 문서(window.parent.document.head)에 직접 DOM을 추가하는 방식으로 우회했다. 이미 넣은 태그가
+    있으면 건너뛰게 만들어서, 이 함수가 여러 번 불려도 <head>에 중복으로 쌓이지 않는다.
+
+    want_output=False로 이 컴포넌트가 Python에 값을 돌려보내지 않게 했다 - streamlit_js_eval처럼
+    "값을 돌려주는" 컴포넌트는 리턴값이 바뀔 때마다 Streamlit이 스크립트를 다시 리런시키는데,
+    이 함수는 그 리턴값이 전혀 필요 없으니 아예 안 받는 게 맞다 (_restore_scroll_position에서
+    이걸 안 해서 무한 리런 버그가 났던 걸 고치면서 여기도 같이 정리했다).
+
+    ⚠ manifest.json/아이콘/테마색만으로 "홈 화면에 추가"가 항상 뜨는 건 아니다 - 브라우저마다 설치
+    가능 판정 기준이 다르고(크롬 계열은 서비스 워커 등록까지 요구하는 경우가 있음), HTTPS로 실제
+    배포된 뒤 진짜 기기에서 확인이 필요하다. 오늘은 기반(manifest/아이콘/테마색)까지만 깔아둔다.
+    """
+    js = """
+    (function() {
+        var d = window.parent.document;
+        if (!d.querySelector('link[rel="manifest"]')) {
+            var link = d.createElement('link');
+            link.rel = 'manifest';
+            link.href = '/app/static/manifest.json';
+            d.head.appendChild(link);
+        }
+        if (!d.querySelector('meta[name="theme-color"]')) {
+            var meta = d.createElement('meta');
+            meta.name = 'theme-color';
+            meta.content = '#2E7D32';
+            d.head.appendChild(meta);
+        }
+        return true;
+    })()
+    """
+    streamlit_js_eval(js_expressions=js, key="pwa_head_inject", want_output=False)
 
 
 def main() -> None:
@@ -208,24 +398,46 @@ def main() -> None:
         menu_items={"Get help": None, "Report a bug": None, "About": None},
     )
     st.markdown(HIDE_STREAMLIT_CHROME_CSS, unsafe_allow_html=True)
+    st.markdown(PAGE_TRANSITION_CSS, unsafe_allow_html=True)
+    _inject_pwa_head()
     st.title("자치구별 치안 안전 지수 대시보드")
-    st.caption("※ data/processed/*.json이 있으면 실제 데이터를, 없으면 더미 데이터를 사용합니다.")
 
     geo = load_geojson()
     df = get_district_scores(geo)
     facilities = get_facility_markers(geo)
+    cctv_stats = get_cctv_stats()
 
-    # 예전엔 사이드바가 "자치구 필터"였는데, 이제 사이드바는 페이지를 고르는 앱 내비게이션이 되고
-    # 자치구 선택은 "안심지수 히트맵" 페이지 안(지역별 상세 토글)으로 옮겼다.
+    # 사이드바가 "자치구 필터"가 아니라 페이지를 고르는 앱 내비게이션 역할을 한다 (기본 동작 -
+    # 왼쪽에서 접었다 펼 수 있는 사이드바 형태). 각 페이지에 icon을 지정해서 사이드바 목록에서도
+    # 어떤 탭인지 아이콘으로 바로 구분되게 했다.
     # 세 page 콜백이 다 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
     # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 셋 다 이름이 같아서 충돌한다)
     # url_path를 직접 지정해서 각 페이지 주소가 겹치지 않게 한다.
     pages = [
-        st.Page(lambda: render_index_page(geo, df), title="안심지수 히트맵", url_path="index"),
-        st.Page(lambda: render_facility_page(facilities), title="시설 찾기", url_path="facilities"),
-        st.Page(lambda: render_route_page(facilities), title="길찾기", url_path="route"),
+        st.Page(
+            lambda: render_index_page(geo, df, cctv_stats),
+            title="안심지수 히트맵",
+            icon="🛡️",
+            url_path="index",
+        ),
+        st.Page(
+            lambda: render_facility_page(facilities),
+            title="시설 찾기",
+            icon="📍",
+            url_path="facilities",
+        ),
+        st.Page(
+            lambda: render_route_page(facilities),
+            title="길찾기",
+            icon="🧭",
+            url_path="route",
+        ),
     ]
-    st.navigation(pages).run()
+    current_page = st.navigation(pages)
+    current_page.run()
+    # 기본(첫 번째) 페이지는 url_path가 빈 문자열로 나와서, 스크롤 저장 키가 비어도 괜찮게
+    # "index"로 대체해준다 (다른 페이지와 구분만 되면 되는 저장용 키라 값 자체는 임의로 정해도 무방).
+    _restore_scroll_position(current_page.url_path or "index")
 
 
 main()
