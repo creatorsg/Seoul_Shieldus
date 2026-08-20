@@ -39,14 +39,14 @@ if not RAW_PATH.exists():
     )
 
 # ------------------------------------------------------------------
-# 2. 인코딩 판별 (원본 파일은 절대 덮어쓰지 않고, 메모리에서만 처리)
+# 2. 인코딩 
 # ------------------------------------------------------------------
 try:
     df = pd.read_csv(RAW_PATH, encoding="cp949")
-    print("[로그] cp949로 읽기 성공")
+    print("cp949")
 except UnicodeDecodeError:
     df = pd.read_csv(RAW_PATH, encoding="utf-8-sig")
-    print("[로그] cp949 디코딩 실패 -> utf-8-sig로 읽기 성공")
+    print("utf-8-sig")
 
 print(f"[로그] 원본 로드 완료: 총 {len(df)}행, 컬럼: {list(df.columns)}")
 
@@ -109,9 +109,7 @@ already_has_suffix = pd.Series(
 )
 seoul["관서명_전체"] = name.where(already_has_suffix, name + suffix)
 
-n_dedup = already_has_suffix.sum()
-if n_dedup > 0:
-    print(f"[로그] 관서명에 구분 접미사가 이미 포함된 행 {n_dedup}건은 중복 결합하지 않음")
+
 
 # ------------------------------------------------------------------
 # 6. 팀 스펙에 맞는 최종 컬럼만 선택
