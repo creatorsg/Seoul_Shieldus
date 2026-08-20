@@ -1,4 +1,4 @@
-<div id="marker-filters" style="margin-bottom:8px;">${filter_controls_html}</div>
+<div id="marker-filters" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px 16px;">${filter_controls_html}</div>
 <div id="naver-map" style="width:100%;height:${height}px;"></div>
 <script type="text/javascript"
     src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${client_id}"></script>
@@ -12,6 +12,7 @@
     var typeStyles = ${type_styles_json};
     var markersByType = ${markers_by_type_json};
     var streetLights = ${street_lights_json};
+    var safePaths = ${safe_paths_json};
 
     function pinIcon(color) {
         return {
@@ -20,6 +21,29 @@
                 'box-shadow:0 0 2px rgba(0,0,0,.5);"></div>',
             anchor: new naver.maps.Point(8, 16)
         };
+    }
+
+    function showToast(message) {
+        var toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+            'background:rgba(0,0,0,0.8);color:#fff;padding:10px 16px;border-radius:20px;' +
+            'font-size:13px;z-index:9999;transition:opacity 0.3s;max-width:80%;text-align:center;';
+        document.body.appendChild(toast);
+        setTimeout(function () {
+            toast.style.opacity = '0';
+            setTimeout(function () { toast.remove(); }, 300);
+        }, 1500);
+    }
+
+    function copyAddressToClipboard(name, address) {
+        var done = function () { showToast(name + ' 주소가 복사되었습니다'); };
+        var fail = function () { showToast('주소 복사에 실패했습니다: ' + address); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(address).then(done).catch(fail);
+        } else {
+            fail();
+        }
     }
 
     function dotIcon(size, color) {
@@ -37,12 +61,18 @@
     Object.keys(markersByType).forEach(function (type) {
         var color = typeStyles[type] || '#757575';
         markerLayers[type] = markersByType[type].map(function (f) {
-            return new naver.maps.Marker({
+            var marker = new naver.maps.Marker({
                 position: new naver.maps.LatLng(f.lat, f.lng),
                 map: map,
                 title: f.name,
                 icon: pinIcon(color)
             });
+            if (f.address) {
+                naver.maps.Event.addListener(marker, 'click', function () {
+                    copyAddressToClipboard(f.name, f.address);
+                });
+            }
+            return marker;
         });
     });
 
@@ -68,9 +98,26 @@
         }
     }) : null;
 
+    // 안심귀갓길: 노선(폴리라인) 362개 정도라 클러스터링 없이 바로 그린다. 각 노선은 점이
+    // 여러 개인 하나의 선이라, 마커처럼 종류별 배열에 모아두고 체크박스로 한 번에 켜고 끈다.
+    var safePathColor = typeStyles['귀갓길'] || '#8E24AA';
+    var safePathLines = safePaths.map(function (route) {
+        var path = route.coords.map(function (c) { return new naver.maps.LatLng(c.lat, c.lng); });
+        return new naver.maps.Polyline({
+            path: path,
+            strokeColor: safePathColor,
+            strokeWeight: 3,
+            strokeOpacity: 0.8
+        });
+    });
+
     function toggleType(type, checked) {
         if (type === '가로등') {
             if (streetLightClustering) { streetLightClustering.setMap(checked ? map : null); }
+            return;
+        }
+        if (type === '귀갓길') {
+            safePathLines.forEach(function (line) { line.setMap(checked ? map : null); });
             return;
         }
         (markerLayers[type] || []).forEach(function (m) { m.setMap(checked ? map : null); });
