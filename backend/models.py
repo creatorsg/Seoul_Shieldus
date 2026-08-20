@@ -1,5 +1,6 @@
 import _frozen_importlib_external
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 # pyrefly: ignore [missing-import]
@@ -134,17 +135,18 @@ class DistrictCctvStat(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    # 5. 지구대 및 파출소 위치 데이터
-    class PoliceStation(Base):
-        __tablename__ = "police_stations"
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        district = Column(String(50), nullable=False, index=True)
-        station_name = Column(String(100), nullable=False)
-        type = Column(String(50), nullable=False)
-        address = Column(String(255), nullable=True)
-        lat = Column(Float, nullable=False)
-        lng = Column(Float, nullable=False)
+# 5. 지구대 및 파출소 위치 데이터
+class PoliceStation(Base):
+    __tablename__ = "police_stations"
 
-        created_at = Column(DateTime, server_default=func.now())
-        updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    district = Column(String(50), nullable=False, index=True)
+    station_name = Column(String(100), nullable=False)
+    type = Column(String(50), nullable=False)
+    address = Column(String(255), nullable=True)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
