@@ -1,0 +1,377 @@
+[
+    {
+        "district": "종로구",
+        "total_cctv": 3187,
+        "crime_prevention_total": 2947,
+        "purpose": {
+            "crime": 1944,
+            "child_protection": 105,
+            "park_playground": 898,
+            "illegal_dumping": 0,
+            "fire_safety": 58,
+            "traffic_crackdown": 182,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "중구",
+        "total_cctv": 3522,
+        "crime_prevention_total": 2952,
+        "purpose": {
+            "crime": 2487,
+            "child_protection": 82,
+            "park_playground": 321,
+            "illegal_dumping": 62,
+            "fire_safety": 225,
+            "traffic_crackdown": 345,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "용산구",
+        "total_cctv": 4018,
+        "crime_prevention_total": 3572,
+        "purpose": {
+            "crime": 2991,
+            "child_protection": 183,
+            "park_playground": 398,
+            "illegal_dumping": 0,
+            "fire_safety": 5,
+            "traffic_crackdown": 441,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "성동구",
+        "total_cctv": 4829,
+        "crime_prevention_total": 4261,
+        "purpose": {
+            "crime": 3056,
+            "child_protection": 429,
+            "park_playground": 493,
+            "illegal_dumping": 283,
+            "fire_safety": 117,
+            "traffic_crackdown": 451,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "광진구",
+        "total_cctv": 4866,
+        "crime_prevention_total": 4584,
+        "purpose": {
+            "crime": 3203,
+            "child_protection": 636,
+            "park_playground": 687,
+            "illegal_dumping": 58,
+            "fire_safety": 181,
+            "traffic_crackdown": 101,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "동대문구",
+        "total_cctv": 4323,
+        "crime_prevention_total": 4019,
+        "purpose": {
+            "crime": 3022,
+            "child_protection": 305,
+            "park_playground": 650,
+            "illegal_dumping": 42,
+            "fire_safety": 1,
+            "traffic_crackdown": 287,
+            "traffic_info": 0,
+            "others": 16
+        }
+    },
+    {
+        "district": "중랑구",
+        "total_cctv": 5549,
+        "crime_prevention_total": 5161,
+        "purpose": {
+            "crime": 4352,
+            "child_protection": 141,
+            "park_playground": 657,
+            "illegal_dumping": 11,
+            "fire_safety": 80,
+            "traffic_crackdown": 308,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "성북구",
+        "total_cctv": 5401,
+        "crime_prevention_total": 5091,
+        "purpose": {
+            "crime": 3883,
+            "child_protection": 544,
+            "park_playground": 664,
+            "illegal_dumping": 0,
+            "fire_safety": 36,
+            "traffic_crackdown": 256,
+            "traffic_info": 18,
+            "others": 0
+        }
+    },
+    {
+        "district": "강북구",
+        "total_cctv": 4601,
+        "crime_prevention_total": 4437,
+        "purpose": {
+            "crime": 3421,
+            "child_protection": 357,
+            "park_playground": 659,
+            "illegal_dumping": 0,
+            "fire_safety": 49,
+            "traffic_crackdown": 115,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "도봉구",
+        "total_cctv": 3121,
+        "crime_prevention_total": 2927,
+        "purpose": {
+            "crime": 2042,
+            "child_protection": 198,
+            "park_playground": 687,
+            "illegal_dumping": 0,
+            "fire_safety": 74,
+            "traffic_crackdown": 120,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "노원구",
+        "total_cctv": 4245,
+        "crime_prevention_total": 3845,
+        "purpose": {
+            "crime": 2196,
+            "child_protection": 372,
+            "park_playground": 1172,
+            "illegal_dumping": 105,
+            "fire_safety": 257,
+            "traffic_crackdown": 143,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "은평구",
+        "total_cctv": 6160,
+        "crime_prevention_total": 5437,
+        "purpose": {
+            "crime": 3986,
+            "child_protection": 166,
+            "park_playground": 1285,
+            "illegal_dumping": 0,
+            "fire_safety": 337,
+            "traffic_crackdown": 386,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "서대문구",
+        "total_cctv": 4492,
+        "crime_prevention_total": 3801,
+        "purpose": {
+            "crime": 2561,
+            "child_protection": 136,
+            "park_playground": 1104,
+            "illegal_dumping": 0,
+            "fire_safety": 240,
+            "traffic_crackdown": 451,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "마포구",
+        "total_cctv": 4111,
+        "crime_prevention_total": 3825,
+        "purpose": {
+            "crime": 2897,
+            "child_protection": 234,
+            "park_playground": 654,
+            "illegal_dumping": 40,
+            "fire_safety": 43,
+            "traffic_crackdown": 243,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "양천구",
+        "total_cctv": 5066,
+        "crime_prevention_total": 4656,
+        "purpose": {
+            "crime": 3038,
+            "child_protection": 840,
+            "park_playground": 778,
+            "illegal_dumping": 0,
+            "fire_safety": 0,
+            "traffic_crackdown": 216,
+            "traffic_info": 0,
+            "others": 194
+        }
+    },
+    {
+        "district": "강서구",
+        "total_cctv": 4759,
+        "crime_prevention_total": 4592,
+        "purpose": {
+            "crime": 3457,
+            "child_protection": 314,
+            "park_playground": 821,
+            "illegal_dumping": 0,
+            "fire_safety": 0,
+            "traffic_crackdown": 167,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "구로구",
+        "total_cctv": 6266,
+        "crime_prevention_total": 5430,
+        "purpose": {
+            "crime": 3793,
+            "child_protection": 575,
+            "park_playground": 1022,
+            "illegal_dumping": 40,
+            "fire_safety": 323,
+            "traffic_crackdown": 513,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "금천구",
+        "total_cctv": 3986,
+        "crime_prevention_total": 3671,
+        "purpose": {
+            "crime": 2705,
+            "child_protection": 312,
+            "park_playground": 587,
+            "illegal_dumping": 67,
+            "fire_safety": 11,
+            "traffic_crackdown": 304,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "영등포구",
+        "total_cctv": 5518,
+        "crime_prevention_total": 4751,
+        "purpose": {
+            "crime": 3970,
+            "child_protection": 278,
+            "park_playground": 503,
+            "illegal_dumping": 0,
+            "fire_safety": 87,
+            "traffic_crackdown": 680,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "동작구",
+        "total_cctv": 4329,
+        "crime_prevention_total": 3901,
+        "purpose": {
+            "crime": 2677,
+            "child_protection": 448,
+            "park_playground": 757,
+            "illegal_dumping": 19,
+            "fire_safety": 203,
+            "traffic_crackdown": 90,
+            "traffic_info": 135,
+            "others": 0
+        }
+    },
+    {
+        "district": "관악구",
+        "total_cctv": 7260,
+        "crime_prevention_total": 6202,
+        "purpose": {
+            "crime": 4741,
+            "child_protection": 239,
+            "park_playground": 1073,
+            "illegal_dumping": 149,
+            "fire_safety": 831,
+            "traffic_crackdown": 227,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "서초구",
+        "total_cctv": 6410,
+        "crime_prevention_total": 4154,
+        "purpose": {
+            "crime": 3070,
+            "child_protection": 200,
+            "park_playground": 884,
+            "illegal_dumping": 0,
+            "fire_safety": 941,
+            "traffic_crackdown": 1315,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "강남구",
+        "total_cctv": 8600,
+        "crime_prevention_total": 7364,
+        "purpose": {
+            "crime": 5445,
+            "child_protection": 1083,
+            "park_playground": 836,
+            "illegal_dumping": 0,
+            "fire_safety": 262,
+            "traffic_crackdown": 927,
+            "traffic_info": 0,
+            "others": 47
+        }
+    },
+    {
+        "district": "송파구",
+        "total_cctv": 5039,
+        "crime_prevention_total": 4297,
+        "purpose": {
+            "crime": 2902,
+            "child_protection": 481,
+            "park_playground": 914,
+            "illegal_dumping": 0,
+            "fire_safety": 246,
+            "traffic_crackdown": 496,
+            "traffic_info": 0,
+            "others": 0
+        }
+    },
+    {
+        "district": "강동구",
+        "total_cctv": 4923,
+        "crime_prevention_total": 4751,
+        "purpose": {
+            "crime": 3732,
+            "child_protection": 268,
+            "park_playground": 751,
+            "illegal_dumping": 0,
+            "fire_safety": 0,
+            "traffic_crackdown": 172,
+            "traffic_info": 0,
+            "others": 0
+        }
+    }
+]
