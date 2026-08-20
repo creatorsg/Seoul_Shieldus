@@ -18,7 +18,7 @@ import pandas as pd
 #    (VS Code Run 버튼이든 터미널 cd 상태든) 항상 같은 파일을 가리키게 함.
 #
 #    C:\rookies6\Seoul_Shieldus\Seoul_Shieldus\data_police_cctv
-#    ├── raw/police_raw.csv              <- 원본 (절대 덮어쓰지 않음)
+#    ├── raw/police_raw.csv              <- 원본 
 #    ├── scripts/clean_police.py         <- 이 파일
 #    └── processed/
 #         ├── jigudae_seoul.csv          <- 최종 결과
