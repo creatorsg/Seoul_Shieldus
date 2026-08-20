@@ -50,3 +50,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# IDE
+.vscode/
