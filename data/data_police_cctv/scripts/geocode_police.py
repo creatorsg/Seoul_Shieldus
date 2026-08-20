@@ -29,7 +29,7 @@ load_dotenv()  # scripts/.env 에서 KAKAO_API_KEY 로드
 KAKAO_API_KEY = os.getenv("KAKAO_API_KEY")
 if not KAKAO_API_KEY:
     raise RuntimeError(
-        "KAKAO_API_KEY가 없습니다. scripts/.env 파일에 KAKAO_API_KEY=발급받은키 형태로 추가하세요."
+        "KAKAO_API_KEY가 없습니다. "
     )
 
 HEADERS = {"Authorization": f"KakaoAK {KAKAO_API_KEY}"}
