@@ -42,13 +42,100 @@ NAVER_MAPS_CLIENT_ID = os.getenv("NAVER_MAPS_CLIENT_ID")
 
 ROUTE_MODES = {"도보": "pedestrian", "자동차": "car"}
 
+PRETENDARD_CSS_URL = (
+    "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css"
+)
+
+# 전체 화면에 Pretendard 폰트를 적용한다. <link>가 <head>에 로드되고 나면, 실제 font-family
+# 지정은 body 안에 있는 이 <style> 블록만으로도 문서 전체에 적용된다(CSS는 삽입 위치와 무관하게
+# 셀렉터에 매칭되는 모든 요소에 적용됨). code/pre류는 모노스페이스를 유지해 코드 블록이 깨지지
+# 않게 한다.
+PRETENDARD_FONT_CSS = """
+<style>
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stSidebar"],
+[data-testid="stMarkdownContainer"],
+button, input, textarea, select, label {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
+        'Malgun Gothic', sans-serif !important;
+}
+code, pre, kbd, samp {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important;
+}
+</style>
+"""
+
+# 사이드바(secondaryBackgroundColor, 진한 남색)와 본문(backgroundColor, 거의 흰색)을 분리했다.
+# Streamlit 테마는 textColor 하나를 본문/사이드바에 공통으로 쓰기 때문에, 본문 기준(어두운 남색)
+# 글자색이 사이드바에서는 그대로 안 보인다 - 사이드바 안에서만 밝은 글자색으로 덮어쓴다.
+SIDEBAR_CSS = """
+<style>
+[data-testid="stSidebar"] * {
+    color: #E2E8F0 !important;
+}
+[data-testid="stSidebar"] a[aria-current="page"] {
+    background: rgba(255,255,255,0.14) !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] a:hover {
+    background: rgba(255,255,255,0.08) !important;
+    border-radius: 8px !important;
+}
+.sidebar-brand {
+    color: #FFFFFF !important;
+}
+/* 브랜드 워드마크를 stLogoSpacer로 옮긴 뒤(_reorder_sidebar_brand) 원래 자리인
+   stSidebarUserContent는 항상 빈 채로 남는다 - Streamlit이 이 요소에 "남은 세로 공간을
+   채우는" 크기 규칙을 갖고 있어서, 비어 있어도 넓은 여백을 차지한다. 그 여백을 접는다. */
+[data-testid="stSidebarUserContent"] {
+    flex: none !important;
+    min-height: 0 !important;
+    height: 0 !important;
+}
+</style>
+"""
+
+# 지도(folium/네이버 지도)는 모두 iframe 기반 커스텀 컴포넌트(stCustomComponentV1)로 렌더링되는데,
+# 기본은 radius 0px로 페이지에 그냥 얹혀있는 모양이다. 홈 화면 카드와 같은 12px 코너 + 옅은
+# 테두리로 감싸서, 세 지도(히트맵/시설 찾기/길찾기) 모두 같은 "카드" 톤으로 보이게 통일한다.
+MAP_CARD_CSS = """
+<style>
+[data-testid="stCustomComponentV1"] {
+    border-radius: 12px !important;
+    border: 1px solid rgba(20,20,20,0.09) !important;
+    overflow: hidden !important;
+}
+</style>
+"""
+
 # Streamlit 기본 UI 중 "이거 Streamlit으로 만들었어요" 티가 나는 요소를 숨긴다.
 # toolbarMode="minimal"(.streamlit/config.toml)이 Deploy 버튼/개발자 메뉴는 이미 지워주지만,
 # 하단 "Made with Streamlit" 푸터와 헤더 위 무지개색 장식 줄은 config로 못 지워서 CSS로 숨긴다.
+#
+# _inject_head_scripts()/_restore_scroll_position()은 화면에 아무것도 안 그리고
+# streamlit_js_eval로 스크립트만 실행하는 용도인데, 그 컴포넌트(iframe)가 기본 높이(~25px)를
+# 차지해서 페이지 맨 위(제목 위)에 빈 상자가 쌓여 보이는 문제가 있었다. 각 컴포넌트의 key로
+# 만들어지는 class(st-key-...)를 잡아서 높이를 0으로 접는다.
+#
+# stHeader(사이드바 접기 버튼이 있는 상단 바)는 position:absolute라 실제 여백을 차지하지
+# 않는다 - 진짜 빈 공간의 정체는 stMainBlockContainer의 기본 padding-top(96px, 헤더 높이
+# 60px보다 훨씬 큼)이다. 헤더 버튼이 안 가려질 만큼만(64px) 남기고 나머지는 줄인다.
 HIDE_STREAMLIT_CHROME_CSS = """
 <style>
 footer { visibility: hidden; }
 div[data-testid="stDecoration"] { display: none; }
+[class*="st-key-head_scripts_inject"],
+[class*="st-key-scroll_restore_"] {
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+div[data-testid="stMainBlockContainer"] {
+    padding-top: 64px !important;
+}
 </style>
 """
 
@@ -71,6 +158,33 @@ PAGE_TRANSITION_CSS = """
 div[data-testid="stMain"] div[data-testid="stElementContainer"]:not(:has(iframe)) {
     animation: fadeSlideIn 0.28s ease-out;
 }
+</style>
+"""
+
+# st.selectbox(예: 히트맵 "지역별 상세"의 자치구 선택, 길찾기의 목적지 선택) 위젯은 배경색을
+# 테마의 secondaryBackgroundColor(사이드바에 쓰는 진한 남색 #1E3A5F)에서 그대로 물려받는다.
+# 텍스트는 어두운 textColor(#0F172A)라 남색 배경 위에서 안 보인다 - 이 위젯만 배경을 흰색으로
+# 바꿔서(텍스트는 원래도 어두운 색이라 흰 배경에서 자연스럽게 잘 보인다) 해결한다.
+SELECTBOX_CSS = """
+<style>
+[data-testid="stSelectbox"] [role="group"] {
+    background-color: #FFFFFF !important;
+}
+</style>
+"""
+
+# "보기 방식"(전체 확인 / 지역별 상세) 라디오를 segmented-button 탭처럼 보이게 한다.
+# ⚠ Streamlit 내부 DOM/testid는 버전마다 바뀔 수 있다. 이 앱이 이미 stElementContainer 같은
+# 비교적 최신 testid를 쓰고 있어 아래도 같은 세대 기준(stRadio)으로 맞췄지만, 실제 반영 후
+# 브라우저 devtools로 한 번은 구조를 확인해보는 게 안전하다.
+VIEW_TOGGLE_CSS = """
+<style>
+div[data-testid="stRadio"] > div[role="radiogroup"] { display:flex; gap:8px; }
+div[data-testid="stRadio"] label {
+    border:1px solid rgba(20,20,20,0.09); border-radius:8px; padding:8px 16px; cursor:pointer;
+}
+div[data-testid="stRadio"] label:has(input:checked) { background:#262626; }
+div[data-testid="stRadio"] label:has(input:checked) p { color:#fff; }
 </style>
 """
 
@@ -175,15 +289,56 @@ def _render_score_bar(label: str, score: float) -> None:
     )
 
 
-def render_district_detail(row, cctv_stats) -> None:
-    """선택된 자치구 하나의 안심지수/세부 점수 + CCTV 목적별 통계를 그린다."""
-    st.subheader(f"{row['구']} 상세")
-    st.metric("안심지수", f"{row['안심지수']}점")
-    st.caption(
-        "아래 5개 지표(CCTV·귀갓길·파출소·가로등·범죄안전)를 종합해 계산한 점수입니다. "
-        "산정 방식은 위쪽 '안심지수는 어떻게 계산되나요?'에서 확인할 수 있습니다."
+def render_ranking_table(df) -> None:
+    """
+    자치구 랭킹 표에 안심지수 색상을 입힌다. 색은 새로 정하지 않고 colors.score_to_color를
+    그대로 쓴다 - 사이드바 점수바/지도와 같은 기준으로 읽히게 하기 위해서다. 배경은 "22"(약
+    13% 불투명도) 접미사를 붙여 옅게 깔아서, 글자 대비를 해치지 않으면서 색만 살짝 보이게 한다.
+    """
+    ranking = df.sort_values("안심지수", ascending=False)[["구", "안심지수"]]
+    styled = ranking.style.apply(
+        lambda row: [f"background-color: {score_to_color(row['안심지수'])}22"] * len(row),
+        axis=1,
     )
-    st.write("")
+    st.dataframe(styled, width="stretch", hide_index=True)
+
+
+
+# 자치구 상세 패널의 소제목 3개(구 상세/안심지수/CCTV 목적별 설치 현황) 글씨 크기를 통일한다.
+# "안심지수"는 st.metric의 라벨이라 기본이 14px(캡션 수준)로 작게 나오고, "CCTV 목적별 설치
+# 현황"은 h5(20px)라 "구 상세" h4(24px)보다 한 단계 작다 - 셋 다 24px/굵게로 맞춘다.
+DISTRICT_DETAIL_CSS = """
+<style>
+[data-testid="stMetricLabel"],
+[data-testid="stMetricLabel"] p {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+}
+</style>
+"""
+
+# 안심지수 섹션/CCTV 목적별 설치 현황 섹션을 반투명 유리(glass) 박스로 감싼다. 두 st.container
+# (border=True)를 서로 구분 없이 똑같은 유리 스타일로 골라내려고, 각 컨테이너 맨 앞에 숨겨진
+# 마커(.glass-card-marker)를 하나 심고 :has()로 그 마커를 가진 컨테이너만 골라 스타일을 건다.
+GLASS_CARD_CSS = """
+<style>
+div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] .glass-card-marker) {
+    background: rgba(255,255,255,0.55) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.6) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 24px rgba(30,58,95,0.08) !important;
+    padding: 20px !important;
+}
+</style>
+"""
+
+
+def render_district_detail(row, df, cctv_stats) -> None:
+    """선택된 자치구 하나의 안심지수/세부 점수 + CCTV 목적별 통계를 그린다."""
+    st.markdown(f"#### {row['구']} 상세")
+    st.metric("안심지수", f"{row['안심지수']}점")
     for label, col in DETAIL_SCORE_FIELDS:
         _render_score_bar(label, row[col])
 
@@ -193,8 +348,7 @@ def render_district_detail(row, cctv_stats) -> None:
     if district_cctv.empty:
         return
     c = district_cctv.iloc[0]
-    st.divider()
-    st.subheader("CCTV 목적별 설치 현황")
+    st.markdown("##### CCTV 목적별 설치 현황")
     st.caption(f"총 {c['총_CCTV']:,}대 (그중 방범 목적 {c['방범_합계']:,}대)")
     # sort=False가 중요하다: st.bar_chart는 기본값(sort=True)일 때 Altair가 카테고리(구매목적명)를
     # 알아서 다시 정렬해버려서, 우리가 값(대수) 기준 내림차순으로 미리 만들어둔 dict 순서가
@@ -297,62 +451,21 @@ def _add_district_labels(m: "folium.Map", geo: dict) -> None:
         ).add_to(m)
 
 
-def render_home_page(df, pages: dict) -> None:
-    
-    st.subheader("서울시 25개 자치구의 치안 정보를 한눈에")
-    st.markdown(
-        "CCTV, 지구대·파출소, 안심귀갓길, 가로등, 범죄율 데이터를 종합해 자치구별 **안심지수**를 "
-        "계산하고, 내 주변 치안 시설을 찾고 길안내까지 받을 수 있는 서비스입니다."
-    )
-
-    if not df.empty:
-        avg_score = df["안심지수"].mean()
-        top = df.sort_values("안심지수", ascending=False).iloc[0]
-        col1, col2 = st.columns(2)
-        col1.metric("서울 평균 안심지수", f"{avg_score:.1f}점")
-        col2.metric("안심지수 1위 자치구", f"{top['구']} ({top['안심지수']:.1f}점)")
-
-    st.divider()
-    st.subheader("핵심 기능")
-    cols = st.columns(3)
-    for col, (icon, title, desc, url_path) in zip(cols, HOME_FEATURE_CARDS):
-        with col:
-            st.markdown(
-                f"""
-                <div style="border:1px solid #E0E0E0;border-radius:10px;padding:18px 16px;
-                            min-height:170px;">
-                  <div style="font-size:28px;">{icon}</div>
-                  <div style="font-weight:700;font-size:16px;margin:8px 0 6px;">{title}</div>
-                  <div style="font-size:13px;color:#555555;line-height:1.5;">{desc}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            st.page_link(pages[url_path], label=f"{title} 바로가기", icon="➡️")
-
-    st.divider()
-    st.subheader("데이터 출처")
-    st.caption(
-        "지구대·파출소 위치, CCTV 설치 현황, 여성안심귀갓길 — 서울 열린데이터광장(data.seoul.go.kr)  \n"
-        "범죄 통계, 가로등 등 안전시설물 — 공공데이터포털(data.go.kr)  \n"
-        "지도 표시 — 네이버 클라우드 플랫폼 Maps API · 도보/자동차 경로 안내 — TMAP(SK Open API)"
-    )
-
-
 def render_index_page(geo: dict, df, cctv_stats) -> None:
     """
     안심지수 히트맵 페이지: 지도를 위에 크게 띄우고, 아래에서 "전체 확인"(표) /
     "지역별 상세"(자치구 하나 골라서 점수 + CCTV 목적별 통계 뜯어보기) 를 토글로 전환한다.
     """
     st.header("안심지수 히트맵")
+    st.markdown(EXPANDER_CARD_CSS, unsafe_allow_html=True)
 
     with st.expander("안심지수는 어떻게 계산되나요?"):
         st.markdown(
             "구별 **CCTV 설치 현황**, **지구대/파출소 접근성**, **안심귀갓길**, **가로등**, "
-            "**범죄 안전도**, 이렇게 5개 지표를 종합해 0~100점으로 계산합니다. "
-            "각 지표는 자치구 상세 보기에서 점수별로 따로 확인할 수 있습니다.\n\n"
-            "⚠️ 지표별 정확한 반영 비율(가중치)은 데이터팀 확인 후 업데이트할 예정입니다."
+            "**범죄 안전도**, 이렇게 5개 지표를 종합해 0~100점으로 계산합니다.\n\n "
+            "각 지표는 자치구 상세 보기에서 점수별로 따로 확인할 수 있습니다."
         )
+
 
     m = folium.Map(location=[37.5665, 126.9780], zoom_start=11)
     # Leaflet은 지역(폴리곤)을 클릭 가능한 SVG <path>로 그리는데, 클릭하면 그 <path>에 브라우저
@@ -395,17 +508,11 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
 
     if view == "전체 확인":
         st.subheader("자치구 랭킹")
-        # 처음엔 지도/상세 페이지와 맞춰 점수 칸에 배경색(빨강~초록)을 칠했었는데, 25행 전체가
-        # 색으로 뒤덮이니 오히려 눈이 피로하다는 피드백을 받고 뺐다. 표는 순위를 빠르게 훑어보는
-        # 용도라 색 없이 숫자만 보는 게 더 편하다고 판단 - 색 기준(빨강=위험~초록=안전)은
-        # 지도 범례와 지역별 상세의 점수 막대에서 여전히 확인할 수 있다.
         ranking = df.sort_values("안심지수", ascending=False)[["구", "안심지수"]]
-        st.dataframe(
-            ranking.style.format({"안심지수": "{:.1f}"}), width="stretch", hide_index=True
-        )
+        st.dataframe(ranking, width="stretch", hide_index=True)
     else:
         selected_gu = st.selectbox("자치구 선택", sorted(df["구"].tolist()))
-        render_district_detail(df[df["구"] == selected_gu].iloc[0], cctv_stats)
+        render_district_detail(df[df["구"] == selected_gu].iloc[0], df, cctv_stats)
 
 
 def _facility_display_table(facilities, df):
@@ -516,6 +623,109 @@ def render_route_page(facilities) -> None:
         st.caption("경로를 가져오지 못했습니다. TMAP 앱에 해당 이동수단 상품이 등록되어 있는지 확인하세요.")
 
 
+# 홈 화면 기능 카드(st.container(border=True))의 radius를 12px로 맞춘다. Streamlit 기본
+# bordered container radius(테마 baseRadius 기준, 보통 8px)는 그대로 두면 다른 화면의
+# 카드/모달과는 맞지만 홈 소개 카드에는 살짝 각져 보여서, 이 페이지 안에서만 살짝 더 둥글게 조정한다.
+# 그림자는 원래도 없어서(플랫 스타일) box-shadow는 명시적으로만 none을 못박아 둔다.
+#
+# 호버 시 카드가 살짝 떠오르고(translateY) 테두리가 그 카드의 서비스 색(accent)으로 진해지게 해서
+# 그림자 없이도 "클릭 가능한 카드"라는 느낌을 준다. 3개 카드가 각각 다른 accent를 쓰기 때문에,
+# nth-of-type으로 같은 행(stHorizontalBlock)의 1/2/3번째 컬럼을 구분해서 색을 다르게 건다 -
+# 이 CSS는 render_home_page 안에서만 주입되므로 다른 화면의 st.columns에는 영향이 없다.
+HOME_CARD_CSS = """
+<style>
+div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] [data-testid="stPageLink"]) {
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    transition: transform 0.15s ease-out, border-color 0.15s ease-out;
+}
+div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] [data-testid="stPageLink"]):hover {
+    transform: translateY(-4px);
+}
+[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-of-type(1)
+    div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] [data-testid="stPageLink"]):hover {
+    border-color: #2E7D32 !important;
+}
+[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-of-type(2)
+    div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] [data-testid="stPageLink"]):hover {
+    border-color: #D81B60 !important;
+}
+[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-of-type(3)
+    div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] [data-testid="stPageLink"]):hover {
+    border-color: #1565C0 !important;
+}
+.home-card-icon-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 12px; font-size: 22px;
+    margin-bottom: 8px;
+}
+</style>
+"""
+
+
+def render_home_page(page_heatmap, page_facility, page_route) -> None:
+    """랜딩 페이지: 서비스 소개 + 3개 핵심 기능으로 바로 진입하는 카드."""
+    st.markdown(HOME_CARD_CSS, unsafe_allow_html=True)
+    # 공간이 넉넉한 홈 히어로에는 원본 크레스트(텍스트 배너 포함)를 그대로 쓴다 - 사이드바 아이콘과
+    # 달리 여기선 디테일이 뭉개질 걱정이 없다. st.image는 기본 좌측 정렬이라, 좌우로 빈 컬럼을
+    # 두는 3분할(5:2:5) 레이아웃으로 가운데 컬럼에만 넣어서 중앙 정렬한다.
+
+    
+  
+    
+    # 2. 추가할 이미지 (가운데 정렬)
+    # [1, 2, 1] 비율을 [1, 1, 1]이나 [1, 3, 1] 등으로 바꿔서 사진 크기를 조절할 수 있습니다.
+    img_l, img_c, img_r = st.columns([1, 12, 1])
+    with img_c:
+        st.image("hero.png", use_container_width=True)
+
+    # 3. 메인 텍스트 (늦은 밤 골목길...)
+    st.markdown(
+        """
+        <div style="text-align:center;padding:16px 24px 32px;">
+          <h1 style="font-size:32px;font-weight:600;line-height:1.35;margin:0 0 16px;">
+            늦은 밤 골목길, 혼자 걸어도 안전할까요?
+          </h1>
+          <p style="font-size:16px;line-height:1.7;color:#5B7A99;margin:0 auto;max-width:520px;">
+            CCTV·가로등·파출소 접근성·귀갓길 안전도를 종합한 안심지수로 서울의 치안을
+            \n한눈에 확인하고, 가까운 치안시설과 길찾기까지 지원합니다.
+            \n서울 쉴더스와 함께 하세요.
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # accent: 사이드바 아이콘/카드 호버 테두리와 같은 색 기준 - 안심지수 히트맵은 브랜드 그린,
+    # 시설 찾기/길찾기는 지도 마커 색상(naver_map.py의 FACILITY_TYPE_STYLES, 목적지 강조색)과 맞춘다.
+    cards = [
+        (page_heatmap, "🛡️", "#2E7D32", "안심지수 히트맵", "자치구별 안심지수를 지도와 랭킹으로 비교해보세요."),
+        (page_facility, "📍", "#D81B60", "시설 찾기", "가까운 지구대·파출소·가로등을 지도에서 확인하세요."),
+        (page_route, "🧭", "#1565C0", "길찾기", "가장 가까운 치안시설까지 경로를 안내합니다."),
+    ]
+    for col, (page, icon, accent, title, desc) in zip(st.columns(3), cards):
+        with col, st.container(border=True):
+            st.markdown(
+                f"<div class='home-card-icon-badge' style='background:{accent}1A;'>{icon}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(f"**{title}**")
+            st.caption(desc)
+            st.page_link(page, label="바로가기 →")
+
+    st.markdown(
+        """
+        <div style="text-align:center;margin-top:32px;padding-top:16px;
+                    border-top:1px solid rgba(30,111,176,0.15);">
+          <p style="font-size:12px;color:#5B7A99;margin:0;">
+            데이터 출처: 서울 열린데이터광장, 경찰청, 서울시설공단, 공공데이터 포탈
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def _restore_scroll_position(page_key: str) -> None:
     """
     (베스트 에포트) Streamlit은 위젯 조작 등으로 리런될 때마다 본문 스크롤을 맨 위로 되돌리는데,
@@ -577,43 +787,70 @@ def _restore_scroll_position(page_key: str) -> None:
     )
 
 
-def _inject_pwa_head() -> None:
+def _inject_head_scripts() -> None:
     """
-    PWA manifest/테마색 메타 태그를 <head>에 넣는다.
+    <head> 태그 추가 + 사이드바 브랜드 워드마크 재배치까지, 화면에 아무것도 안 그리는 JS
+    우회 작업 세 가지(PWA manifest/테마색, Pretendard 폰트, 사이드바 워드마크 이동)를 한
+    streamlit_js_eval 호출로 합쳤다.
 
-    Streamlit 오픈소스는 <head>에 커스텀 태그를 넣는 공식 API가 없다. st.markdown(unsafe_allow_html=True)은
-    body 안에 삽입되고, <script> 태그도 innerHTML로 넣으면 브라우저가 실행을 안 해줘서, streamlit_js_eval로
-    상위 문서(window.parent.document.head)에 직접 DOM을 추가하는 방식으로 우회했다. 이미 넣은 태그가
-    있으면 건너뛰게 만들어서, 이 함수가 여러 번 불려도 <head>에 중복으로 쌓이지 않는다.
+    원래는 함수 세 개(_inject_pwa_head/_inject_pretendard_font/_reorder_sidebar_brand)로
+    나눠서 streamlit_js_eval을 세 번 따로 불렀는데, 각 호출이 (높이는 0이어도) 부모
+    stVerticalBlock의 flex gap을 하나씩 차지해서 - 다른 여러 개의 "높이 0짜리" CSS
+    st.markdown 호출들과 합쳐져 - 페이지 맨 위에 제목이 밀려 내려갈 만큼 여백이 쌓였다.
+    호출을 하나로 합치면 그 gap도 하나만 차지한다.
 
-    want_output=False로 이 컴포넌트가 Python에 값을 돌려보내지 않게 했다 - streamlit_js_eval처럼
-    "값을 돌려주는" 컴포넌트는 리턴값이 바뀔 때마다 Streamlit이 스크립트를 다시 리런시키는데,
-    이 함수는 그 리턴값이 전혀 필요 없으니 아예 안 받는 게 맞다 (_restore_scroll_position에서
-    이걸 안 해서 무한 리런 버그가 났던 걸 고치면서 여기도 같이 정리했다).
+    Streamlit 오픈소스는 <head>에 커스텀 태그를 넣는 공식 API가 없어서 window.parent.document로
+    직접 DOM을 추가하는 방식으로 우회한다. 이미 넣은 태그/이미 옮긴 노드면 건너뛰게 만들어서
+    리런마다 중복 작업하지 않는다. want_output=False로 이 컴포넌트가 Python에 값을 돌려보내지
+    않게 한다 - streamlit_js_eval처럼 "값을 돌려주는" 컴포넌트는 리턴값이 바뀔 때마다 Streamlit이
+    스크립트를 다시 리런시키는데, 여기선 그 리턴값이 필요 없으니 아예 안 받는 게 맞다
+    (_restore_scroll_position에서 이걸 안 해서 무한 리런 버그가 났던 적이 있다).
 
     ⚠ manifest.json/아이콘/테마색만으로 "홈 화면에 추가"가 항상 뜨는 건 아니다 - 브라우저마다 설치
     가능 판정 기준이 다르고(크롬 계열은 서비스 워커 등록까지 요구하는 경우가 있음), HTTPS로 실제
     배포된 뒤 진짜 기기에서 확인이 필요하다. 오늘은 기반(manifest/아이콘/테마색)까지만 깔아둔다.
+
+    사이드바 워드마크 이동 관련: st.navigation이 만드는 nav는 항상 stSidebarUserContent보다
+    먼저 오는 고정 자리에 배치돼서, st.sidebar.markdown()을 nav보다 먼저 호출해도 실제 DOM에서는
+    nav 뒤에 놓인다. stSidebarUserContent를 통째로 nav 앞으로 옮기면 "남은 세로 공간을 다 채우는"
+    크기 규칙을 그대로 들고 와서 nav가 화면 훨씬 아래로 밀리는 부작용이 있었다 - 대신 그 규칙이
+    없는 stLogoSpacer(st.logo()를 쓸 때 이미지가 들어가는, 작고 고정된 자리)로 워드마크의
+    element-container만 옮긴다.
     """
-    js = """
-    (function() {
+    js = f"""
+    (function() {{
         var d = window.parent.document;
-        if (!d.querySelector('link[rel="manifest"]')) {
+        if (!d.querySelector('link[rel="manifest"]')) {{
             var link = d.createElement('link');
             link.rel = 'manifest';
             link.href = '/app/static/manifest.json';
             d.head.appendChild(link);
-        }
-        if (!d.querySelector('meta[name="theme-color"]')) {
+        }}
+        if (!d.querySelector('meta[name="theme-color"]')) {{
             var meta = d.createElement('meta');
             meta.name = 'theme-color';
             meta.content = '#2E7D32';
             d.head.appendChild(meta);
-        }
+        }}
+        if (!d.querySelector('link[data-pretendard-font]')) {{
+            var fontLink = d.createElement('link');
+            fontLink.rel = 'stylesheet';
+            fontLink.href = '{PRETENDARD_CSS_URL}';
+            fontLink.setAttribute('data-pretendard-font', '1');
+            d.head.appendChild(fontLink);
+        }}
+        var brand = d.querySelector('.sidebar-brand');
+        var spacer = d.querySelector('[data-testid="stLogoSpacer"]');
+        if (brand && spacer) {{
+            var brandContainer = brand.closest('[data-testid="stElementContainer"]');
+            if (brandContainer && brandContainer.parentElement !== spacer) {{
+                spacer.appendChild(brandContainer);
+            }}
+        }}
         return true;
-    })()
+    }})()
     """
-    streamlit_js_eval(js_expressions=js, key="pwa_head_inject", want_output=False)
+    streamlit_js_eval(js_expressions=js, key="head_scripts_inject", want_output=False)
 
 
 def main() -> None:
@@ -623,10 +860,31 @@ def main() -> None:
         # 햄버거 메뉴의 "도움말/버그 신고/정보" 항목도 지운다. 셋 다 None이면 메뉴 자체가 사라진다.
         menu_items={"Get help": None, "Report a bug": None, "About": None},
     )
-    st.markdown(HIDE_STREAMLIT_CHROME_CSS, unsafe_allow_html=True)
-    st.markdown(PAGE_TRANSITION_CSS, unsafe_allow_html=True)
-    _inject_pwa_head()
-    st.title("자치구별 치안 안전 지수 대시보드")
+    # 사이드바 상단(내비게이션 항목들 위)에 브랜드 워드마크를 넣는다. SIDEBAR_CSS가 사이드바 안
+    # 모든 글자를 밝은 회색(#E2E8F0)으로 강제하기 때문에, 완전한 흰색으로 보이려면 별도 클래스가
+    # 필요하다 - 인라인 style에 !important를 직접 써도 Streamlit의 HTML sanitizer가 인라인
+    # !important만 조용히 제거해버려서(다른 속성은 안 건드림) 적용이 안 됐다. 대신 클래스
+    # (.sidebar-brand, SIDEBAR_CSS에 정의)에 !important를 넣어서 우회한다.
+    st.sidebar.markdown(
+        "<div class='sidebar-brand' style='padding:8px 0 8px 16px;font-size:20px;"
+        "font-weight:700;letter-spacing:0.5px;white-space:nowrap;'>SEOUL SHIELDUS</div>",
+        unsafe_allow_html=True,
+    )
+    # 이 6개를 각각 따로 st.markdown()으로 넣으면(모두 <style> 태그뿐이라 높이는 0이어도)
+    # 부모 flex 컨테이너의 gap을 하나씩 차지해서 페이지 맨 위 제목이 쓸데없이 밀려 내려간다 -
+    # 하나로 합쳐서 gap도 하나만 쓰게 한다.
+    st.markdown(
+        HIDE_STREAMLIT_CHROME_CSS
+        + PAGE_TRANSITION_CSS
+        + VIEW_TOGGLE_CSS
+        + PRETENDARD_FONT_CSS
+        + SIDEBAR_CSS
+        + MAP_CARD_CSS
+        + SELECTBOX_CSS,
+        unsafe_allow_html=True,
+    )
+    _inject_head_scripts()
+    st.title("서울 쉴더스 : 서울의 안전을 확인하다")
 
     geo = load_geojson()
     df = get_district_scores(geo)
@@ -636,46 +894,34 @@ def main() -> None:
     # 사이드바가 "자치구 필터"가 아니라 페이지를 고르는 앱 내비게이션 역할을 한다 (기본 동작 -
     # 왼쪽에서 접었다 펼 수 있는 사이드바 형태). 각 페이지에 icon을 지정해서 사이드바 목록에서도
     # 어떤 탭인지 아이콘으로 바로 구분되게 했다.
-    # 모든 page 콜백이 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
-    # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 다 이름이 같아서 충돌한다)
+    # 세 page 콜백이 다 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
+    # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 셋 다 이름이 같아서 충돌한다)
     # url_path를 직접 지정해서 각 페이지 주소가 겹치지 않게 한다.
-    #
-    # list가 아니라 {url_path: st.Page} 딕셔너리로 만드는 이유: 홈 페이지의 "바로가기" 카드가
-    # 다른 페이지로 이동하려면 st.page_link에 그 페이지의 st.Page 객체를 그대로 넘겨야 한다.
-    # render_home_page(df, pages)가 이 딕셔너리를 통째로 받아서 pages["index"]처럼 이름으로
-    # 찾아 쓴다 - render_home_page의 lambda가 pages보다 먼저 줄에 쓰여 있지만, 실제로 호출되는
-    # 시점(페이지가 열릴 때)엔 아래 줄들까지 다 실행된 뒤라 4개 페이지가 이미 다 채워져 있다.
-    pages = {}
-    pages["home"] = st.Page(
-        lambda: render_home_page(df, pages),
-        title="홈",
-        icon="🏠",
-        url_path="home",
-        default=True,
-    )
-    pages["index"] = st.Page(
-        lambda: render_index_page(geo, df, cctv_stats),
-        title="안심지수 히트맵",
-        icon="🛡️",
-        url_path="index",
-    )
-    pages["facilities"] = st.Page(
-        lambda: render_facility_page(facilities, df),
-        title="시설 찾기",
-        icon="📍",
-        url_path="facilities",
-    )
-    pages["route"] = st.Page(
-        lambda: render_route_page(facilities),
-        title="길찾기",
-        icon="🧭",
-        url_path="route",
-    )
-    current_page = st.navigation(list(pages.values()))
+    pages = [
+        st.Page(
+            lambda: render_index_page(geo, df, cctv_stats),
+            title="안심지수 히트맵",
+            icon="🛡️",
+            url_path="index",
+        ),
+        st.Page(
+            lambda: render_facility_page(facilities, df),
+            title="시설 찾기",
+            icon="📍",
+            url_path="facilities",
+        ),
+        st.Page(
+            lambda: render_route_page(facilities),
+            title="길찾기",
+            icon="🧭",
+            url_path="route",
+        ),
+    ]
+    current_page = st.navigation(pages)
     current_page.run()
-    # 기본(첫 번째) 페이지는 url_path가 빈 문자열로 나와서, 스크롤 저장 키가 비어도 괜찮게
-    # "index"로 대체해준다 (다른 페이지와 구분만 되면 되는 저장용 키라 값 자체는 임의로 정해도 무방).
-    _restore_scroll_position(current_page.url_path or "index")
+    # 기본(첫 번째) 페이지가 이제 홈이라, url_path가 빈 문자열로 나올 때 대체값도 "home"으로 맞춘다
+    # (다른 페이지와 구분만 되면 되는 저장용 키라 값 자체는 임의로 정해도 무방).
+    _restore_scroll_position(current_page.url_path or "home")
 
 
 main()
