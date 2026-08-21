@@ -1,0 +1,101 @@
+<div id="marker-filters" style="margin-bottom:8px;">${filter_controls_html}</div>
+<div id="naver-map" style="width:100%;height:${height}px;"></div>
+<script type="text/javascript"
+    src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${client_id}"></script>
+<script type="text/javascript" src="vendor/MarkerClustering.js"></script>
+<script>
+    var map = new naver.maps.Map('naver-map', {
+        center: new naver.maps.LatLng(37.5665, 126.9780),
+        zoom: 11
+    });
+
+    var typeStyles = ${type_styles_json};
+    var markersByType = ${markers_by_type_json};
+    var streetLights = ${street_lights_json};
+
+    function pinIcon(color) {
+        return {
+            content: '<div style="width:16px;height:16px;border-radius:50% 50% 50% 0;' +
+                'transform:rotate(-45deg);background:' + color + ';border:2px solid white;' +
+                'box-shadow:0 0 2px rgba(0,0,0,.5);"></div>',
+            anchor: new naver.maps.Point(8, 16)
+        };
+    }
+
+    function dotIcon(size, color) {
+        return {
+            content: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;' +
+                'background:' + color + ';border:1px solid white;color:#333;font-size:11px;' +
+                'line-height:' + size + 'px;text-align:center;"></div>',
+            anchor: new naver.maps.Point(size / 2, size / 2)
+        };
+    }
+
+    // 지구대/파출소: 개수가 적어서(수백 개) 낱개 마커로 바로 그린다. 종류별로 배열을 따로 들고 있어야
+    // 체크박스 하나가 바뀔 때 그 종류의 마커만 켜고 끌 수 있다.
+    var markerLayers = {};
+    Object.keys(markersByType).forEach(function (type) {
+        var color = typeStyles[type] || '#757575';
+        markerLayers[type] = markersByType[type].map(function (f) {
+            return new naver.maps.Marker({
+                position: new naver.maps.LatLng(f.lat, f.lng),
+                map: map,
+                title: f.name,
+                icon: pinIcon(color)
+            });
+        });
+    });
+
+    // 가로등: 19,000개가 넘어서 낱개로 찍으면 브라우저가 버벅인다. MarkerClustering으로 묶어서 그리고,
+    // 기본은 꺼진 상태(map: null)로 만들어둔다 - 체크박스를 켜야 표시된다.
+    var streetLightColor = typeStyles['가로등'] || '#F9A825';
+    var streetLightMarkers = streetLights.map(function (p) {
+        return new naver.maps.Marker({ position: new naver.maps.LatLng(p.lat, p.lng) });
+    });
+    var streetLightClustering = streetLightMarkers.length ? new MarkerClustering({
+        map: null,
+        markers: streetLightMarkers,
+        disableClickZoom: false,
+        minClusterSize: 2,
+        maxZoom: 15,
+        gridSize: 100,
+        icons: [28, 36, 44, 52, 60].map(function (size) { return dotIcon(size, streetLightColor); }),
+        indexGenerator: [10, 100, 500, 2000],
+        stylingFunction: function (clusterMarker, count) {
+            var el = clusterMarker.getElement();
+            var label = el && el.firstChild;
+            if (label) { label.textContent = count; }
+        }
+    }) : null;
+
+    function toggleType(type, checked) {
+        if (type === '가로등') {
+            if (streetLightClustering) { streetLightClustering.setMap(checked ? map : null); }
+            return;
+        }
+        (markerLayers[type] || []).forEach(function (m) { m.setMap(checked ? map : null); });
+    }
+
+    document.querySelectorAll('#marker-filters input[type=checkbox]').forEach(function (cb) {
+        toggleType(cb.value, cb.checked);
+        cb.addEventListener('change', function () { toggleType(cb.value, cb.checked); });
+    });
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            var myLatLng = new naver.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+            new naver.maps.Marker({
+                position: myLatLng,
+                map: map,
+                icon: {
+                    content: '<div style="background:#4285F4;border:2px solid white;border-radius:50%;width:14px;height:14px;"></div>',
+                    anchor: new naver.maps.Point(7, 7)
+                },
+                title: '내 위치'
+            });
+            map.setCenter(myLatLng);
+        }, function (err) {
+            console.log('위치 정보를 가져오지 못했습니다: ' + err.message);
+        });
+    }
+</script>
