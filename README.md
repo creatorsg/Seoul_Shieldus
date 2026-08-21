@@ -11,7 +11,22 @@ CCTV, 지구대·파출소, 여성안심귀갓길, 가로등, 범죄 통계 등 
 
 ---
 
-## 데모
+1. 서울 열린데이터광장 (data.seoul.go.kr)
+   - 지구대/파출소 위치, CCTV 설치 현황, 여성안심귀갓길, 자치구별 인구/면적 등 공공API 형태로 제공
+
+2. 공공데이터포털 (data.go.kr)
+   - 경찰청 범죄 통계, 안전시설물(가로등 등) 관련 데이터
+
+3. 지도 표시 - 네이버 클라우드 플랫폼 Maps API
+   - 자치구 경계, 지구대/CCTV/귀갓길 등 좌표를 지도 위에 "표시"하는 용도로만 사용
+   - 서비스 이용약관 제7조 11항에 따라 결과로 받은 좌표 데이터를 API 호출 없이 재사용/캐싱하는 것은 금지되어 있으므로,
+     위치 데이터는 위 공공 데이터 출처에서 직접 수집·저장하고, 네이버 지도는 화면에 그리는 용도로만 사용
+
+4. 길찾기(보행자 경로 안내) - TMAP API (SK Open API)
+   - 네이버 Directions API는 자동차 경로만 지원하므로, 도보 기반 안심귀갓길 안내에는 TMAP 보행자 경로 API 사용
+
+# 데이터 수집 방법
+데이터 수집 방법
 
 ![서울쉴더스 실행 화면 데모](docs/demo.gif)
 
@@ -19,116 +34,27 @@ CCTV, 지구대·파출소, 여성안심귀갓길, 가로등, 범죄 통계 등 
 
 ## 주요 기능
 
-- **🛡️ 안심지수 히트맵** — 서울시 25개 자치구를 CCTV · 파출소 접근성 · 안심귀갓길 · 가로등 · 범죄안전 5개 지표의 가중합(0~100점)으로 계산한 "안심지수"로 비교합니다. 지도에서 자치구를 호버하면 해당 폴리곤이 강조되고, 랭킹 표와 자치구별 상세 점수 막대, CCTV 목적별 설치 현황 차트를 확인할 수 있습니다.
-- **📍 시설찾기** — 지도 위에 지구대 · 파출소 · 가로등 · 안심귀갓길을 표시하고, 이름 · 구 · 주소 · 종류 · 범죄율을 표로 제공합니다.
-- **🧭 길찾기** — 브라우저 위치 정보로 현재 위치를 확인하고, 가장 가까운(또는 직접 선택한) 지구대 · 파출소까지 도보/자동차 경로를 TMAP 보행자 경로 API로 안내합니다.
-- **🏠 홈** — 서울 평균 안심지수, 안심지수 1위 자치구, 3개 기능 바로가기 카드를 제공합니다.
+4. 보안 및 데이터 정제
+- API Key 보안 관리, 데이터 통합 및 저장 
 
-안심지수 산출 방식과 검증 과정(회귀분석 잔차 0.005점 이내, 각 지표-원본 수치 간 상관계수 0.99 이상)은 [`docs/`](docs/) 폴더의 프로젝트 기획서를 참고해 주세요.
+# 실행 방법 (프론트엔드 - 더미 데이터 기준)
 
-## 기술 스택
+1. 의존성 설치
+   ```
+   pip install -r requirements.txt
+   ```
 
-| 영역 | 기술 |
-| --- | --- |
-| 프론트엔드 | Streamlit, folium / streamlit-folium, 네이버 지도 API, TMAP API |
-| 데이터 처리 | pandas |
-| 데이터베이스 | SQLAlchemy (SQLite 기본 / MySQL 선택) |
-| 배포 | Streamlit Community Cloud |
+2. 프로젝트 루트에서 앱 실행
+   ```
+   streamlit run frontend/app.py
+   ```
 
-## 설치 및 실행 방법
+3. 현재 상태
+   - `data/seoul_districts.geojson` : 서울 25개 자치구 경계 데이터 (southkorea/seoul-maps 저장소 출처)
+   - `frontend/app.py` : 백엔드 데이터 연동 전까지 랜덤 더미 값으로 화면 확인용
+   - 백엔드 데이터가 준비되면 `frontend/app.py` 의 `get_district_scores()` 함수 내부만
+     실제 데이터 조회 코드로 교체하면 됩니다 (반환 컬럼 형식은 함수 docstring 참고)
 
-### 1. 저장소 클론
-
-```bash
-git clone https://github.com/creatorsg/Seoul_Shieldus.git
-cd Seoul_Shieldus
-```
-
-### 2. 가상환경 생성 및 의존성 설치
-
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 3. 환경 변수 설정
-
-`.env.example`을 복사해 `.env`를 만들고 API 키를 채워 넣습니다.
-
-```bash
-cp .env.example .env
-```
-
-```dotenv
-# 지도 API (필수 - 시설찾기 · 길찾기 페이지에 필요)
-***REMOVED***발급받은_클라이언트_ID
-***REMOVED***발급받은_앱_키
-
-# Database (선택 - 비워두면 자동으로 SQLite 사용)
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-```
-
-- 네이버 지도 API 키: [네이버 클라우드 플랫폼](https://www.ncloud.com)에서 Maps 서비스를 신청해 발급받습니다.
-- TMAP API 키: [SK Open API](https://tmapapi.sktelecom.com)에서 발급받습니다.
-- DB 관련 값을 모두 비워두면 별도 서버 설치 없이 `backend/seoul_shieldus.db`(SQLite)를 자동 생성해 사용합니다. 앱을 처음 실행하면 `data/processed/`의 JSON 원본이 자동으로 시딩됩니다.
-
-### 4. 앱 실행
-
-```bash
-streamlit run frontend/app.py
-```
-
-브라우저에서 `http://localhost:8501`로 접속하면 됩니다.
-
-## 프로젝트 구조
-
-```
-Seoul_Shieldus/
-├── README.md
-├── requirements.txt
-├── .env.example              API 키/DB 접속 정보 키 목록만 공유
-├── frontend/
-│   ├── app.py                화면 조립 (Streamlit)
-│   ├── data_access.py        데이터 로딩 계층 (DB 우선 조회, JSON 폴백)
-│   ├── colors.py             점수 → 색상 매핑 단일 소스
-│   ├── naver_map.py          네이버 지도 HTML 생성
-│   ├── route_finder.py       TMAP 경로 조회
-│   └── static/                PWA manifest.json · 아이콘
-├── data/
-│   ├── raw/                  원본 데이터
-│   ├── processed/            정제된 자치구별 안심지수 · 시설 데이터
-│   └── (팀원별 작업 폴더 — 담당 데이터셋 정제 스크립트 포함)
-├── backend/
-│   ├── database.py           SQLAlchemy 연결 (SQLite/MySQL 자동 분기)
-│   ├── models.py             ORM 테이블 6종
-│   └── init_db.py            DB 테이블 생성 + JSON 데이터 시딩
-└── docs/                     프로젝트 기획서 · 산출 방식 설명
-```
-
-## 데이터 출처
-
-- [서울 열린데이터광장](https://data.seoul.go.kr) — 지구대/파출소 위치, CCTV 설치현황, 여성안심귀갓길, 자치구별 인구/면적
-- [공공데이터포털](https://data.go.kr) — 범죄 발생 통계(경찰청), 가로등 설치현황
-
-## 팀원 (Team Seoul-Shielders)
-
-| 이름 | GitHub | 역할 |
-| --- | --- | --- |
-| 손인선 (조장) | [@creatorsg](https://github.com/creatorsg) | 프론트엔드 · 화면·백엔드 통합 |
-| 강대현 | [@user4753](https://github.com/user4753) | 발표 |
-| 황인찬 | [@bluejals13](https://github.com/bluejals13) | 서울 지역별 범죄율 · 가로등 설치현황 데이터 처리 |
-| 이승혁 | [@sheok13](https://github.com/sheok13) | 데이터 정규화 |
-| 전승호 | [@kdb1828-hub](https://github.com/kdb1828-hub) | 여성안심귀갓길 · 자치구별 인구/면적 데이터 처리 |
-| 정예빈 | [@benniejung](https://github.com/benniejung) | 백엔드 |
-| 정세진 | [@tpwlswjd3026](https://github.com/tpwlswjd3026) | 지구대·파출소 · CCTV 현황 데이터 처리 |
-
-## 알려진 한계
-
-- 안심지수는 25개 자치구 내 상대적 순위(min-max 정규화)이며, 절대적인 위험도를 의미하지 않습니다.
-- 여성안심귀갓길은 노선 요약 정보(노선 수, 총 길이)는 DB로 이관했지만, 지도에 표시할 좌표 데이터는 아직 DB 스키마에 포함되어 있지 않아 원본 JSON 파일에 의존합니다.
-- 네이버 지도 API 이용약관상 좌표 데이터를 API 호출 없이 재사용/캐싱하는 것이 금지되어 있어, 위치 데이터는 공공데이터 출처에서 직접 수집·저장하고 지도는 화면 표시용으로만 사용합니다.
+4. API 키 관리
+   - 네이버/TMAP 등 API 키는 `.env` 파일에 저장하고 절대 커밋하지 않습니다 (`.gitignore`에 포함됨)
+   - 팀원 공유용으로 `.env.example` 에 키 이름만 적어 배포 예정
