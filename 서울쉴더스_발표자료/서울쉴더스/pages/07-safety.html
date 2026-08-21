@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>07. 자치구별 지표 비교 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • COMPARISON & CRIME TYPES</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-primary">07. DISTRICT COMPARISON</span>
+                    <span class="text-xs text-sub">비교 기준에 따른 치안 순위 변동 및 범죄 유형 분석</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">강남 vs 중구 비교 분석 및 5대 범죄 유형별 분포</h1>
+                        <p class="sub-title">단순 건수 vs 인구 보정 발생률 대조 & 폭력·절도(92.9%) 집중 분석</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Comparative Insights</span></div>
+                <span class="slide-counter">SLIDE 07 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.4rem;">
+            
+            <!-- Left: Gangnam vs Jung-gu Dual Contrast Box -->
+            <div class="flex flex-col justify-between" style="gap: 8px;">
+                <div class="grid grid-cols-12 gap-2 items-stretch" style="flex: 1;">
+                    <!-- Gangnam -->
+                    <div class="col-span-5 security-card flex flex-col justify-between text-center" style="padding: 10px;">
+                        <div>
+                            <span class="badge badge-primary" style="font-size: 0.62rem;">절대 발생건수 1위</span>
+                            <div class="text-2xl font-black text-primary" style="margin-top: 4px;">강남구</div>
+                            <div class="text-xl font-black text-heading my-1">6,107 <span class="text-xs text-muted">건</span></div>
+                        </div>
+                        <div style="background: rgba(15,23,42,0.8); padding: 6px; border-radius: 6px; font-size: 0.68rem; color: #94a3b8;">
+                            상주인구 55.0만명<br>대규모 상권·유동인구 영향
+                        </div>
+                    </div>
+
+                    <!-- Center Arrow -->
+                    <div class="col-span-2 flex flex-col items-center justify-center text-center">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                        </div>
+                        <span class="text-xs font-bold text-amber" style="font-size: 0.65rem; margin-top: 3px;">기준 전환</span>
+                    </div>
+
+                    <!-- Jung-gu -->
+                    <div class="col-span-5 security-card flex flex-col justify-between text-center" style="padding: 10px; border-color: rgba(245,158,11,0.35);">
+                        <div>
+                            <span class="badge badge-amber" style="font-size: 0.62rem;">1만명당 발생 1위</span>
+                            <div class="text-2xl font-black text-amber" style="margin-top: 4px;">중구</div>
+                            <div class="text-xl font-black text-heading my-1">244.17 <span class="text-xs text-muted">건/1만명</span></div>
+                        </div>
+                        <div style="background: rgba(15,23,42,0.8); padding: 6px; border-radius: 6px; font-size: 0.68rem; color: #94a3b8;">
+                            상주인구 12.1만명<br>도심 중심지 분모 효과
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Callout Banner -->
+                <div class="vision-box" style="padding: 8px 12px;">
+                    <div class="text-xs font-bold text-white leading-tight">
+                        "비교 기준 분모를 어떻게 설정하느냐에 따라 치안 분석 결과가 완전히 달라집니다."
+                    </div>
+                    <p class="text-xs text-muted" style="font-size: 0.68rem; margin-top: 2px;">
+                        (참고: 종로구 196.17건 / 영등포구 128.09건 / 도봉구 63.98건 / 성북구 57.57건)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: 5 Crime Types Distribution & Donut Visual -->
+            <div class="security-card flex flex-col justify-between" style="padding: 1rem 1.2rem;">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-heading">5대 범죄 유형별 분포 (총 80,819건)</span>
+                    <span class="badge badge-rose" style="font-size: 0.6rem;">폭력·절도 92.9%</span>
+                </div>
+
+                <div class="space-y-1.5" style="margin: 6px 0;">
+                    <div class="cyber-list-item" style="padding: 5px 10px;">
+                        <span class="flex items-center gap-2"><span style="width: 8px; height: 8px; border-radius: 50%; background: #f43f5e;"></span><strong class="text-heading">폭력</strong></span>
+                        <span class="font-mono font-bold text-heading">39,554 건 (48.9%)</span>
+                    </div>
+                    <div class="cyber-list-item" style="padding: 5px 10px;">
+                        <span class="flex items-center gap-2"><span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span><strong class="text-heading">절도</strong></span>
+                        <span class="font-mono font-bold text-heading">35,506 건 (43.9%)</span>
+                    </div>
+                    <div class="cyber-list-item" style="padding: 5px 10px;">
+                        <span class="flex items-center gap-2"><span style="width: 8px; height: 8px; border-radius: 50%; background: #a855f7;"></span><strong class="text-heading">성범죄</strong></span>
+                        <span class="font-mono font-bold text-heading">5,523 건 (6.8%)</span>
+                    </div>
+                    <div class="cyber-list-item" style="padding: 5px 10px;">
+                        <span class="flex items-center gap-2"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span><strong class="text-heading">살인·강도</strong></span>
+                        <span class="font-mono font-bold text-heading">236 건 (0.3%)</span>
+                    </div>
+                </div>
+
+                <div class="callout-banner" style="padding: 6px 10px; font-size: 0.72rem;">
+                    💡 <strong>핵심 시사점:</strong> 상업지구(강남·중구)는 절도 비중이 높은 반면, 주거밀집지구는 폭력 비중이 상대적으로 우세하게 나타납니다.
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>자치구별 지표 비교 및 범죄 특성 분석</span></div>
+                <span class="text-xs text-sub">District Breakdown & 5 Major Crime Categories</span>
+            </div>
+            <div class="footer-system-note">
+                <span>07 / 10</span>
+                <span>•</span>
+                <span>District Comparison</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>

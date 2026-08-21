@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>05. 치안 공간 매핑 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • SPATIAL MAPPING</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-cyan">05. SPATIAL MAPPING</span>
+                    <span class="text-xs text-sub">공간 정보 시각화 및 멀티 레이어 매핑</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon" style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">서울 25개 자치구 공간 치안 인프라 레이어 매핑</h1>
+                        <p class="sub-title">경찰서 · 방범 CCTV · 안심귀갓길 · 비상벨 등 4대 레이어의 다차원 공간 결합</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>GIS Spatial Engine</span></div>
+                <span class="slide-counter">SLIDE 05 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.4rem;">
+            
+            <!-- Left: Spatial Map Graphic with Layer Switches -->
+            <section class="map-visual-card">
+                <div class="flex items-center justify-between" style="margin-bottom: 4px;">
+                    <div class="flex items-center gap-1.5">
+                        <span class="badge badge-cyan" style="font-size: 0.65rem;">LAYER CONTROLLER</span>
+                        <span class="text-xs text-sub" style="font-size: 0.7rem;">실시간 레이어 온오프 가능</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs">
+                        <span class="badge badge-primary" style="font-size: 0.6rem; padding: 1px 5px;">경찰 243</span>
+                        <span class="badge badge-cyan" style="font-size: 0.6rem; padding: 1px 5px;">CCTV 85k</span>
+                        <span class="badge badge-mint" style="font-size: 0.6rem; padding: 1px 5px;">안심길 1.2k</span>
+                    </div>
+                </div>
+
+                <div class="map-svg-container">
+                    <svg class="seoul-map-svg" viewBox="0 0 520 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="map5Dist" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e293b"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>
+                            <linearGradient id="map5Active" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#172554"/></linearGradient>
+                            <linearGradient id="map5River" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#0284c7"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient>
+                            <filter id="glow5" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+                        </defs>
+
+                        <!-- Matrix Grid -->
+                        <g stroke="var(--map-grid-color)" stroke-width="0.6" stroke-dasharray="3 3">
+                            <line x1="20" y1="40" x2="500" y2="40"/><line x1="20" y1="120" x2="500" y2="120"/><line x1="20" y1="200" x2="500" y2="200"/>
+                            <line x1="120" y1="20" x2="120" y2="260"/><line x1="260" y1="20" x2="260" y2="260"/><line x1="400" y1="20" x2="400" y2="260"/>
+                        </g>
+
+                        <!-- Districts -->
+                        <path d="M 120 70 L 160 50 L 200 65 L 190 115 L 140 125 L 110 100 Z" fill="url(#map5Dist)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <path d="M 200 65 L 255 55 L 275 90 L 265 135 L 210 135 L 190 115 Z" fill="url(#map5Active)" stroke="#60a5fa" stroke-width="1.6"/>
+                        <path d="M 255 55 L 320 35 L 375 60 L 360 115 L 275 90 Z" fill="url(#map5Dist)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <path d="M 275 90 L 360 115 L 365 155 L 290 150 L 265 135 Z" fill="url(#map5Dist)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <path d="M 60 130 L 140 125 L 175 160 L 150 215 L 80 200 L 50 160 Z" fill="url(#map5Dist)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <path d="M 175 160 L 240 155 L 245 225 L 180 230 L 150 215 Z" fill="url(#map5Dist)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <path d="M 240 155 L 330 155 L 340 235 L 250 240 L 245 225 Z" fill="url(#map5Active)" stroke="#60a5fa" stroke-width="1.6"/>
+                        <path d="M 330 155 L 420 130 L 440 190 L 360 230 L 340 235 Z" fill="url(#map5Dist)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+
+                        <!-- Labels -->
+                        <text x="235" y="95" font-size="9" font-weight="800" fill="#93c5fd" text-anchor="middle">도심 치안거점</text>
+                        <text x="290" y="200" font-size="9" font-weight="800" fill="#93c5fd" text-anchor="middle">강남 첨단CCTV</text>
+                        <text x="145" y="90" font-size="8" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">마포·서대문</text>
+                        <text x="200" y="195" font-size="8" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">관악 안심길밀집</text>
+
+                        <!-- Han River -->
+                        <path d="M 40 145 C 100 130, 150 145, 200 140 C 250 135, 270 148, 320 145 C 370 142, 420 120, 470 125" stroke="url(#map5River)" stroke-width="7" stroke-linecap="round" fill="none" filter="url(#glow5)"/>
+
+                        <!-- Glowing Safe Routes -->
+                        <path d="M 125 110 Q 145 95 165 105 T 180 120" stroke="#34d399" stroke-width="3" stroke-dasharray="4 2" fill="none"/>
+                        <path d="M 270 190 Q 295 175 315 185 T 330 210" stroke="#34d399" stroke-width="3" stroke-dasharray="4 2" fill="none"/>
+                        <path d="M 190 185 Q 210 170 230 190" stroke="#34d399" stroke-width="3" stroke-dasharray="4 2" fill="none"/>
+
+                        <!-- Dense Markers -->
+                        <g transform="translate(225, 70)"><circle cx="0" cy="0" r="9" fill="#3b82f6" fill-opacity="0.3" class="map-pin-pulse"/><circle cx="0" cy="0" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.2"/></g>
+                        <g transform="translate(285, 175)"><circle cx="0" cy="0" r="9" fill="#3b82f6" fill-opacity="0.3" class="map-pin-pulse"/><circle cx="0" cy="0" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.2"/></g>
+                        <g transform="translate(150, 98)"><circle cx="0" cy="0" r="5" fill="#10b981" stroke="#fff" stroke-width="1.2"/></g>
+                        <g transform="translate(210, 190)"><circle cx="0" cy="0" r="5" fill="#10b981" stroke="#fff" stroke-width="1.2"/></g>
+                        <g transform="translate(355, 130)"><circle cx="0" cy="0" r="4.5" fill="#06b6d4" stroke="#fff" stroke-width="1"/></g>
+                        <g transform="translate(170, 145)"><circle cx="0" cy="0" r="4.5" fill="#06b6d4" stroke="#fff" stroke-width="1"/></g>
+                        <g transform="translate(320, 85)"><circle cx="0" cy="0" r="4.5" fill="#f59e0b" stroke="#fff" stroke-width="1"/></g>
+                    </svg>
+                </div>
+
+                <div class="map-legend-strip">
+                    <div class="legend-item"><div class="legend-icon icon-police"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span>경찰/파출소 (243)</span></div>
+                    <div class="legend-item"><div class="legend-icon icon-path"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 4v16M17 8l-4-4-4 4"/></svg></div><span>안심귀갓길 (1.2k)</span></div>
+                    <div class="legend-item"><div class="legend-icon icon-cctv"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><span>방범 CCTV (85k)</span></div>
+                    <div class="legend-item"><div class="legend-icon icon-safety"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><span>비상벨/보안등</span></div>
+                </div>
+            </section>
+
+            <!-- Right: Spatial Insight Pillars -->
+            <div class="flex flex-col justify-between" style="gap: 10px;">
+                <!-- Feature 1 -->
+                <div class="security-card" style="padding: 10px 12px;">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="badge badge-primary">공간 분석 01</span>
+                        <h4 class="text-xs font-bold text-heading">자치구별 보안 인프라 밀도 차이</h4>
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.72rem; line-height: 1.35;">
+                        · <strong class="text-heading">강남/서초:</strong> 지능형 관제 CCTV 및 상업구역 보안망 집중<br>
+                        · <strong class="text-heading">종로/중구:</strong> 중심업무지구 경찰서·지구대 순찰 거점 밀집<br>
+                        · <strong class="text-heading">관악/영등포:</strong> 여성안심귀갓길 및 골목길 비상벨 조밀 배치
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="security-card" style="padding: 10px 12px; border-color: rgba(16,185,129,0.3);">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="badge badge-mint">핵심 알고리즘</span>
+                        <h4 class="text-xs font-bold text-mint">안심 귀가 경로 가중치 인덱스</h4>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5 text-center text-xs" style="margin-top: 4px;">
+                        <div style="background: rgba(15,23,42,0.6); padding: 5px; border-radius: 4px;"><span class="text-mint font-bold">조도(가로등)</span><div class="text-sub font-mono" style="font-size: 0.65rem;">가중치 30%</div></div>
+                        <div style="background: rgba(15,23,42,0.6); padding: 5px; border-radius: 4px;"><span class="text-cyan font-bold">감시(CCTV)</span><div class="text-sub font-mono" style="font-size: 0.65rem;">가중치 40%</div></div>
+                        <div style="background: rgba(15,23,42,0.6); padding: 5px; border-radius: 4px;"><span class="text-primary font-bold">대응(파출소)</span><div class="text-sub font-mono" style="font-size: 0.65rem;">가중치 30%</div></div>
+                    </div>
+                </div>
+
+                <!-- Architecture Note -->
+                <div class="vision-box" style="padding: 10px 12px;">
+                    <span class="text-xs font-bold text-cyan uppercase">GeoJSON & API 확장성 설계</span>
+                    <p class="text-xs text-sub" style="font-size: 0.72rem; color: #cbd5e1; margin-top: 2px;">
+                        현재 SVG 레이어는 향후 Folium / Mapbox / 서울시 공간정보 Open API의 실시간 좌표 스트림으로 1:1 교체 연결 가능하도록 표준 데이터 구조를 갖추었습니다.
+                    </p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>서울시 치안 공간 정보 매핑</span></div>
+                <span class="text-xs text-sub">GIS Multi-Layer Security Architecture</span>
+            </div>
+            <div class="footer-system-note">
+                <span>05 / 10</span>
+                <span>•</span>
+                <span>Spatial Mapping</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>

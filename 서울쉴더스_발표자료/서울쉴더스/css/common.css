@@ -1,0 +1,162 @@
+/**
+ * 서울-쉴더스 (Seoul-Shielders) Presentation Design System
+ * common.css - 기본 리셋, 스테이지 래퍼, 16:9 캔버스 및 유틸리티
+ */
+
+/* ================= Reset & Box Model ================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--text-main);
+    background-color: var(--bg-stage);
+    background-image: 
+        radial-gradient(circle at 10% 15%, var(--stage-radial-1) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, var(--stage-radial-2) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, var(--stage-radial-3) 0%, var(--bg-stage) 100%);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ================= 16:9 Presentation Stage ================= */
+.presentation-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 1.5vh 2vw;
+}
+
+/* 16:9 Slide Canvas */
+.slide-canvas {
+    aspect-ratio: 16 / 9;
+    width: min(96vw, 170.66vh);
+    height: min(96vh, 54vw);
+    background: var(--slide-bg);
+    background-image: var(--slide-bg-gradient);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-slide);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2.1rem 2.8rem 1.4rem 2.8rem;
+    color: var(--text-main);
+    border: 1px solid var(--slide-border);
+    backdrop-filter: blur(20px);
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Top Decorative Accent Line */
+.slide-top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 45%, #10b981 100%);
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+    z-index: 10;
+}
+
+/* ================= Typography Utilities ================= */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 800;
+    color: var(--text-heading);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+p {
+    color: var(--text-sub);
+    line-height: 1.5;
+    font-size: 0.85rem;
+}
+
+.text-xs { font-size: 0.72rem; }
+.text-sm { font-size: 0.82rem; }
+.text-base { font-size: 0.95rem; }
+.text-lg { font-size: 1.15rem; }
+.text-xl { font-size: 1.4rem; }
+.text-2xl { font-size: 1.75rem; }
+.text-3xl { font-size: 2.2rem; }
+
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+.font-mono { font-family: var(--font-mono); }
+
+.text-primary { color: var(--color-primary-light); }
+.text-cyan { color: var(--color-cyan-light); }
+.text-mint { color: var(--color-mint-light); }
+.text-amber { color: var(--color-amber-light); }
+.text-rose { color: var(--color-rose-light); }
+.text-muted { color: var(--text-muted); }
+
+/* ================= Layout Grid & Flex Utilities ================= */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-stretch { align-items: stretch; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.flex-1 { flex: 1; min-height: 0; }
+.shrink-0 { flex-shrink: 0; }
+
+.grid { display: grid; }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-5 { grid-column: span 5; }
+.col-span-6 { grid-column: span 6; }
+.col-span-7 { grid-column: span 7; }
+.col-span-8 { grid-column: span 8; }
+.col-span-9 { grid-column: span 9; }
+.col-span-12 { grid-column: span 12; }
+
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-5 { gap: 1.25rem; }
+.gap-6 { gap: 1.5rem; }
+
+.space-y-1 > * + * { margin-top: 0.25rem; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-5 > * + * { margin-top: 1.25rem; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.relative { position: relative; }
+.overflow-hidden { overflow: hidden; }
+
+/* Main Slide Content Slot */
+.slide-content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-height: 0;
+    margin: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
