@@ -1,0 +1,22 @@
+[server]
+enableStaticServing = true
+
+[client]
+# 배포 버튼/개발자 메뉴(재실행, 캐시 지우기 등)를 숨긴다.
+# 웹앱처럼 보이려면 "이거 Streamlit으로 만들었어요" 티가 나는 요소부터 지우는 게 첫 단계.
+toolbarMode = "minimal"
+
+[theme]
+# primaryColor를 "안전" 컨셉의 초록으로 통일한다 - 지도 마커의 파출소 색, 안심지수 색 밴드(colors.py)와
+# 같은 계열이라 선택된 탭 밑줄/라디오 버튼/버튼 등 인터랙티브 요소가 전부 같은 브랜드 색으로 보인다.
+# 사이드바(남색) + 본문(거의 흰색, 살짝 블루 틴트)으로 분리 - primaryColor(안심지수 그린)는 그대로 유지.
+# secondaryBackgroundColor가 진한 남색이라 사이드바 글자색은 기본 textColor(어두운 남색)로는 안 보인다 -
+# app.py의 SIDEBAR_CSS가 사이드바 안에서만 밝은 글자색으로 덮어쓴다.
+primaryColor = "#2E7D32"
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#1E3A5F"
+textColor = "#0F172A"
+# app.py의 _inject_pretendard_font()가 실제 폰트 파일(CDN)을 <head>에 로드한다. 여기서는
+# Streamlit 네이티브 위젯(버튼/입력창 등)이 참조하는 폰트 이름만 Pretendard로 맞춰서,
+# 위젯과 커스텀 CSS(PRETENDARD_FONT_CSS)가 같은 폰트로 보이게 한다.
+font = "Pretendard"
