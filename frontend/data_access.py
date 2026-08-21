@@ -272,15 +272,7 @@ def _dummy_district_scores(districts: list) -> pd.DataFrame:
 
 
 def get_district_scores(geo: dict) -> pd.DataFrame:
-    """
-    자치구별 안심 지수를 반환한다.
-    1) backend DB(seoul_safety_index 테이블)가 준비돼 있으면 그걸 우선 읽는다.
-    2) DB가 없거나 조회에 실패하면 SAFETY_INDEX_FILE(JSON)로 대체한다.
-    3) 그것도 없으면 랜덤 더미로 대체한다.
-    (파일 읽기 자체의 캐싱은 _try_load_json -> _load_json_cached가 mtime 기준으로 담당하므로,
-    여기엔 @st.cache_data를 안 붙인다. geo만 인자로 캐싱하면 파일이 바뀌어도 예전 결과가
-    계속 캐시에 남는 문제가 있었다.)
-    """
+
     districts = _district_names(geo)
 
     db_df = _read_db_table(
@@ -412,14 +404,7 @@ def get_street_light_markers() -> pd.DataFrame:
 
 
 def get_cctv_stats() -> pd.DataFrame:
-    """
-    자치구별 CCTV 설치 현황(총량 + 목적별 세부)을 반환한다. 위치 정보가 없는(자치구 단위 집계)
-    통계 데이터라 지도 마커가 아니라 자치구 상세 패널의 표/차트용이다.
-    1) backend DB(district_cctv_stats 테이블)가 준비돼 있으면 그걸 우선 읽는다.
-    2) 없으면 CCTV_STATS_FILE(JSON)을 읽는다.
-    3) 그것도 없으면 빈 DataFrame을 반환한다 (목적별 세부까지 의미 있게 흉내낸 더미를
-    만들기는 애매해서 더미 대체는 하지 않는다).
-    """
+
     db_df = _read_db_table("district_cctv_stats", CCTV_STATS_DB_RENAME, CCTV_STATS_COLUMNS)
     if db_df is not None:
         return db_df
@@ -450,24 +435,7 @@ def get_cctv_stats() -> pd.DataFrame:
 
 
 def get_safe_paths() -> list:
-    """
-    여성안심귀갓길 노선을 반환한다. 원본은 구 단위로 묶여 있고 그 안에 노선별 좌표가 들어있는데,
-    지도에는 노선 하나하나가 폴리라인 한 줄이라서 [{district, route_name, coords}, ...]로 평평하게
-    펴서 반환한다. coords는 [{"lat": float, "lng": float}, ...].
 
-    원본 좌표에 바로 앞 점과 완전히 똑같은 점이 섞여 있는데(추출 과정에서 생긴 걸로 보임),
-    지도에 그릴 땐 길이 0인 구간이라 그냥 무해하지만 용량만 차지해서 여기서 미리 걸러낸다.
-
-    STREET_LIGHT_FILE처럼 위치 데이터가 아예 없던 시절엔 이 함수가 없었다 - 안심귀갓길에
-    좌표가 추가되면서 새로 생긴 함수다. 파일이 없으면(아직 안 받았으면) 빈 리스트를 반환한다.
-
-    ⚠ 다른 get_*와 달리 이 함수는 DB를 안 거치고 항상 JSON만 읽는다. backend/models.py의
-    SafeRoute 테이블에는 노선 요약(노선수/총길이/방범시설 개수)만 있고 좌표(coordinates)
-    자체를 저장하는 컬럼이 없어서, 지도에 그릴 폴리라인을 DB만으로는 복원할 수 없다.
-    지도에 표시하는 기능을 유지하려면 당장은 이 경로만 JSON을 계속 쓰는 게 맞고, DB로
-    완전히 옮기려면 backend 팀이 SafeRoute에 좌표 컬럼(예: coordinates JSON/TEXT)을
-    추가해야 한다.
-    """
     raw = _try_load_json(SAFE_PATH_FILE)
     if raw is None:
         return []
