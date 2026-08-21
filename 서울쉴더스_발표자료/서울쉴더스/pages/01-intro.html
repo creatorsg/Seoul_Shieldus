@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>01. 프로젝트 소개 | 서울-쉴더스</title>
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Common Design System Styles -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <!-- Top Utility Presenter Bar -->
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • PROJECT INTRO</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <span id="themeLabel">테마 전환</span>
+            </button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>목차</span>
+            </button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                <span>전체화면</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 16:9 Main Slide Canvas -->
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-primary">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                        PROJECT 01
+                    </span>
+                    <span class="text-xs text-sub">공공 빅데이터 기반 치안 인프라 시각화 프로젝트</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">서울-쉴더스 <span class="highlight">(Seoul-Shielders)</span></h1>
+                        <p class="sub-title">서울지역 보안 인프라 데이터 분석 및 안전지도 서비스</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="org-badge">
+                    <span class="dot"></span>
+                    <span>Seoul Safety Intelligence Mesh</span>
+                </div>
+                <span class="slide-counter">SLIDE 01 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1.06fr 1fr; gap: 1.4rem;">
+            
+            <!-- LEFT: SEOUL MAP VISUAL GRAPHIC -->
+            <section class="map-visual-card">
+                <div class="flex items-center justify-between" style="margin-bottom: 2px;">
+                    <div class="flex items-center gap-2 text-xs font-bold text-heading">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-primary"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                        <span>서울시 공간 치안 데이터 매핑</span>
+                    </div>
+                    <span class="badge badge-mint">25개 자치구 통합</span>
+                </div>
+
+                <div class="map-svg-container">
+                    <svg class="seoul-map-svg" viewBox="0 0 520 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="districtGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9" />
+                                <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+                            </linearGradient>
+                            <linearGradient id="activeDistrictGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1e3a5f" />
+                                <stop offset="100%" stop-color="#172554" />
+                            </linearGradient>
+                            <linearGradient id="neonRiverGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+                                <stop offset="0%" stop-color="#0284c7" />
+                                <stop offset="50%" stop-color="#38bdf8" />
+                                <stop offset="100%" stop-color="#0ea5e9" />
+                            </linearGradient>
+                            <filter id="riverGlow" x="-30%" y="-30%" width="160%" height="160%">
+                                <feGaussianBlur stdDeviation="3" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                            <filter id="mintGlow" x="-30%" y="-30%" width="160%" height="160%">
+                                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                        </defs>
+
+                        <!-- Background Geo Matrix Grid -->
+                        <g stroke="var(--map-grid-color)" stroke-width="0.6" stroke-dasharray="3 3">
+                            <line x1="20" y1="40" x2="500" y2="40" /><line x1="20" y1="100" x2="500" y2="100" />
+                            <line x1="20" y1="160" x2="500" y2="160" /><line x1="20" y1="220" x2="500" y2="220" />
+                            <line x1="80" y1="20" x2="80" y2="260" /><line x1="180" y1="20" x2="180" y2="260" />
+                            <line x1="280" y1="20" x2="280" y2="260" /><line x1="380" y1="20" x2="380" y2="260" />
+                        </g>
+
+                        <!-- Stylized Districts -->
+                        <path d="M 120 70 L 160 50 L 200 65 L 190 115 L 140 125 L 110 100 Z" fill="url(#districtGradDark)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <text x="145" y="90" font-size="9" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">서대문·마포</text>
+
+                        <path d="M 200 65 L 255 55 L 275 90 L 265 135 L 210 135 L 190 115 Z" fill="url(#activeDistrictGradDark)" stroke="var(--map-district-active-stroke)" stroke-width="1.6"/>
+                        <text x="235" y="95" font-size="10" font-weight="800" fill="#93c5fd" text-anchor="middle">종로·중구</text>
+
+                        <path d="M 255 55 L 320 35 L 375 60 L 360 115 L 275 90 Z" fill="url(#districtGradDark)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <text x="315" y="75" font-size="9" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">노원·성북</text>
+
+                        <path d="M 275 90 L 360 115 L 365 155 L 290 150 L 265 135 Z" fill="url(#districtGradDark)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <text x="315" y="135" font-size="9" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">성동·광진</text>
+
+                        <path d="M 60 130 L 140 125 L 175 160 L 150 215 L 80 200 L 50 160 Z" fill="url(#districtGradDark)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <text x="110" y="170" font-size="9" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">강서·영등포</text>
+
+                        <path d="M 175 160 L 240 155 L 245 225 L 180 230 L 150 215 Z" fill="url(#districtGradDark)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <text x="200" y="195" font-size="9" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">동작·관악</text>
+
+                        <path d="M 240 155 L 330 155 L 340 235 L 250 240 L 245 225 Z" fill="url(#activeDistrictGradDark)" stroke="var(--map-district-active-stroke)" stroke-width="1.6"/>
+                        <text x="290" y="200" font-size="10" font-weight="800" fill="#93c5fd" text-anchor="middle">강남·서초</text>
+
+                        <path d="M 330 155 L 420 130 L 440 190 L 360 230 L 340 235 Z" fill="url(#districtGradDark)" stroke="var(--map-district-stroke)" stroke-width="1.2"/>
+                        <text x="380" y="180" font-size="9" font-weight="700" fill="var(--map-text-color)" text-anchor="middle">송파·강동</text>
+
+                        <!-- Glowing HAN RIVER -->
+                        <path d="M 40 145 C 100 130, 150 145, 200 140 C 250 135, 270 148, 320 145 C 370 142, 420 120, 470 125" stroke="url(#neonRiverGrad)" stroke-width="7" stroke-linecap="round" fill="none" filter="url(#riverGlow)"/>
+                        <text x="235" y="148" font-size="7.5" font-weight="900" fill="#ffffff" letter-spacing="2">한 강 (HAN RIVER)</text>
+
+                        <!-- Glowing Neon Safe Return Routes -->
+                        <path d="M 125 110 Q 145 95 165 105 T 180 120" stroke="#34d399" stroke-width="3.5" stroke-dasharray="4 2" fill="none" filter="url(#mintGlow)"/>
+                        <path d="M 270 190 Q 295 175 315 185 T 330 210" stroke="#34d399" stroke-width="3.5" stroke-dasharray="4 2" fill="none" filter="url(#mintGlow)"/>
+
+                        <!-- MAP MARKER PINS -->
+                        <g transform="translate(225, 68)">
+                            <circle cx="0" cy="0" r="11" fill="#3b82f6" fill-opacity="0.3" class="map-pin-pulse"/>
+                            <circle cx="0" cy="0" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+                            <path d="M -2.5 -2.5 L 2.5 -2.5 L 2.5 0.5 C 2.5 2 0 3.5 0 3.5 C 0 3.5 -2.5 2 -2.5 0.5 Z" fill="#ffffff"/>
+                        </g>
+                        <g transform="translate(285, 175)">
+                            <circle cx="0" cy="0" r="11" fill="#3b82f6" fill-opacity="0.3" class="map-pin-pulse"/>
+                            <circle cx="0" cy="0" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+                            <path d="M -2.5 -2.5 L 2.5 -2.5 L 2.5 0.5 C 2.5 2 0 3.5 0 3.5 C 0 3.5 -2.5 2 -2.5 0.5 Z" fill="#ffffff"/>
+                        </g>
+                        <g transform="translate(150, 98)">
+                            <circle cx="0" cy="0" r="6" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>
+                            <circle cx="0" cy="-1.5" r="1" fill="#ffffff"/>
+                            <line x1="0" y1="-0.5" x2="0" y2="2" stroke="#ffffff" stroke-width="0.8"/>
+                        </g>
+                        <g transform="translate(170, 145)">
+                            <circle cx="0" cy="0" r="5.5" fill="#06b6d4" stroke="#ffffff" stroke-width="1.2"/>
+                            <rect x="-2" y="-1.5" width="4" height="3" rx="0.5" fill="#ffffff"/>
+                        </g>
+                        <g transform="translate(200, 185)">
+                            <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.2"/>
+                            <polygon points="0,-2 2,1 -2,1" fill="#ffffff"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="map-legend-strip">
+                    <div class="legend-item"><div class="legend-icon icon-police"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span>경찰·파출소</span></div>
+                    <div class="legend-item"><div class="legend-icon icon-path"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 4v16M17 8l-4-4-4 4M17 16l-4 4-4-4"/></svg></div><span>안심귀갓길</span></div>
+                    <div class="legend-item"><div class="legend-icon icon-cctv"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div><span>방범 CCTV</span></div>
+                    <div class="legend-item"><div class="legend-icon icon-safety"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><span>비상벨·보안등</span></div>
+                </div>
+            </section>
+
+            <!-- RIGHT: PROJECT GOAL & CORE VALUES -->
+            <section class="security-card flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="badge badge-primary">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                        PROJECT GOAL
+                    </span>
+                    <span class="text-xs text-muted">핵심 비전 및 지향점</span>
+                </div>
+
+                <div class="vision-box">
+                    <div class="text-xs font-bold text-cyan uppercase tracking-wider" style="margin-bottom: 2px;">Key Vision</div>
+                    <h2 class="vision-heading">
+                        "지도 하나로 보는 <span class="accent">서울의 치안</span>"
+                    </h2>
+                    <p class="text-xs" style="color: #cbd5e1; margin-top: 4px; line-height: 1.4;">
+                        서울시 전체의 치안 상태를 한눈에 파악하고, 내 주변의 파출소·안심귀갓길 등 안전 인프라를 쉽게 찾아볼 수 있도록 데이터를 수집·분석하여 제공하는 지도 기반 시각화 서비스
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="security-card" style="padding: 7px 9px; background: rgba(15,23,42,0.6);">
+                        <div class="flex items-center gap-1 text-xs font-bold text-heading">
+                            <span class="text-primary font-black">01</span>
+                            <span>원스톱 현황</span>
+                        </div>
+                        <p class="text-xs text-sub" style="font-size: 0.67rem; margin-top: 2px;">25개 구 치안 인프라 및 범죄 취약지표 비교</p>
+                    </div>
+
+                    <div class="security-card" style="padding: 7px 9px; background: rgba(15,23,42,0.6);">
+                        <div class="flex items-center gap-1 text-xs font-bold text-heading">
+                            <span class="text-primary font-black">02</span>
+                            <span>내 주변 안심</span>
+                        </div>
+                        <p class="text-xs text-sub" style="font-size: 0.67rem; margin-top: 2px;">파출소, 안심귀갓길, 비상벨 원클릭 확인</p>
+                    </div>
+
+                    <div class="security-card" style="padding: 7px 9px; background: rgba(15,23,42,0.6);">
+                        <div class="flex items-center gap-1 text-xs font-bold text-heading">
+                            <span class="text-primary font-black">03</span>
+                            <span>데이터 신뢰</span>
+                        </div>
+                        <p class="text-xs text-sub" style="font-size: 0.67rem; margin-top: 2px;">공공데이터 전처리 및 객관적 통계 지표화</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- 3. BOTTOM SECTION: WHY THIS PROJECT & 4-STEP PIPELINE -->
+        <section class="security-card" style="padding: 0.8rem 1.1rem; background: var(--bottom-box-bg); margin-top: 0.6rem;">
+            <div class="flex items-center justify-between" style="margin-bottom: 7px;">
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-amber">WHY THIS PROJECT?</span>
+                    <h3 class="text-sm font-bold text-heading">
+                        "흩어진 치안 데이터를 <span class="text-primary" style="background: rgba(59,130,246,0.15); padding: 1px 6px; border-radius: 4px;">하나의 지도에 연결하다.</span>"
+                    </h3>
+                </div>
+                <span class="text-xs text-sub">분산된 공공 치안 정보를 융합하여 시민 체감형 안전 서비스로 전환</span>
+            </div>
+
+            <div class="process-pipeline">
+                <div class="process-step-card">
+                    <div class="step-icon-wrap step-icon-blue"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+                    <div class="step-content">
+                        <span class="step-number-tag">STEP 01</span>
+                        <h4 class="step-title">공공데이터 수집</h4>
+                        <p class="step-desc">경찰서·귀갓길·CCTV 통계</p>
+                    </div>
+                </div>
+                <div class="process-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+
+                <div class="process-step-card">
+                    <div class="step-icon-wrap step-icon-indigo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+                    <div class="step-content">
+                        <span class="step-number-tag">STEP 02</span>
+                        <h4 class="step-title">데이터 전처리·분석</h4>
+                        <p class="step-desc">정제·지오코딩 & 인구보정</p>
+                    </div>
+                </div>
+                <div class="process-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+
+                <div class="process-step-card">
+                    <div class="step-icon-wrap step-icon-cyan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+                    <div class="step-content">
+                        <span class="step-number-tag">STEP 03</span>
+                        <h4 class="step-title">지도 시각화</h4>
+                        <p class="step-desc">인터랙티브 공간 레이어 매핑</p>
+                    </div>
+                </div>
+                <div class="process-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+
+                <div class="process-step-card" style="border-color: rgba(16,185,129,0.45); background: rgba(6,78,59,0.35);">
+                    <div class="step-icon-wrap step-icon-mint"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+                    <div class="step-content">
+                        <span class="step-number-tag" style="color: var(--color-mint-light);">GOAL STEP 04</span>
+                        <h4 class="step-title" style="color: #6ee7b7;">안전지도 서비스</h4>
+                        <p class="step-desc" style="color: #a7f3d0;">시민 체감형 실시간 대시보드</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>팀원 (Team Seoul-Shielders)</span>
+                </div>
+                <div class="team-members-list">
+                    <span class="member-badge">손인선</span>
+                    <span class="member-badge">강대현</span>
+                    <span class="member-badge">황인찬</span>
+                    <span class="member-badge">이승혁</span>
+                    <span class="member-badge">전승호</span>
+                    <span class="member-badge">정예빈</span>
+                    <span class="member-badge">정세진</span>
+                </div>
+            </div>
+            <div class="footer-system-note">
+                <span>데이터 분석 및 시각화 프로젝트</span>
+                <span>•</span>
+                <span>2024 Seoul Security Map Portfolio</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<!-- Presentation Engine Scripts -->
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>

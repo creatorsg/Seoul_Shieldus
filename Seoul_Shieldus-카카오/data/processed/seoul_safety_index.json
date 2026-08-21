@@ -1,0 +1,202 @@
+[
+  {
+    "district": "강남구",
+    "safety_index": 49.52,
+    "cctv_score": 38.78,
+    "safepath_score": 35.13,
+    "police_score": 10.06,
+    "street_light_score": 50.29
+  },
+  {
+    "district": "강동구",
+    "safety_index": 57.5,
+    "cctv_score": 10.54,
+    "safepath_score": 39.14,
+    "police_score": 10.96,
+    "street_light_score": 49.05
+  },
+  {
+    "district": "강북구",
+    "safety_index": 56.4,
+    "cctv_score": 42.47,
+    "safepath_score": 65.28,
+    "police_score": 12.15,
+    "street_light_score": 0.0
+  },
+  {
+    "district": "강서구",
+    "safety_index": 49.45,
+    "cctv_score": 4.51,
+    "safepath_score": 12.29,
+    "police_score": 3.11,
+    "street_light_score": 31.96
+  },
+  {
+    "district": "관악구",
+    "safety_index": 49.26,
+    "cctv_score": 34.78,
+    "safepath_score": 38.38,
+    "police_score": 6.15,
+    "street_light_score": 3.47
+  },
+  {
+    "district": "광진구",
+    "safety_index": 62.73,
+    "cctv_score": 31.6,
+    "safepath_score": 44.04,
+    "police_score": 28.16,
+    "street_light_score": 82.73
+  },
+  {
+    "district": "구로구",
+    "safety_index": 52.51,
+    "cctv_score": 39.28,
+    "safepath_score": 20.23,
+    "police_score": 13.43,
+    "street_light_score": 18.08
+  },
+  {
+    "district": "금천구",
+    "safety_index": 51.43,
+    "cctv_score": 46.58,
+    "safepath_score": 21.49,
+    "police_score": 12.37,
+    "street_light_score": 2.84
+  },
+  {
+    "district": "노원구",
+    "safety_index": 51.51,
+    "cctv_score": 5.28,
+    "safepath_score": 25.84,
+    "police_score": 0.0,
+    "street_light_score": 19.2
+  },
+  {
+    "district": "도봉구",
+    "safety_index": 55.39,
+    "cctv_score": 13.47,
+    "safepath_score": 32.67,
+    "police_score": 12.64,
+    "street_light_score": 3.33
+  },
+  {
+    "district": "동대문구",
+    "safety_index": 58.14,
+    "cctv_score": 19.6,
+    "safepath_score": 50.56,
+    "police_score": 42.79,
+    "street_light_score": 36.8
+  },
+  {
+    "district": "동작구",
+    "safety_index": 63.59,
+    "cctv_score": 18.07,
+    "safepath_score": 80.94,
+    "police_score": 15.8,
+    "street_light_score": 42.39
+  },
+  {
+    "district": "마포구",
+    "safety_index": 48.95,
+    "cctv_score": 17.62,
+    "safepath_score": 17.62,
+    "police_score": 8.58,
+    "street_light_score": 86.48
+  },
+  {
+    "district": "서대문구",
+    "safety_index": 62.06,
+    "cctv_score": 32.92,
+    "safepath_score": 63.02,
+    "police_score": 17.82,
+    "street_light_score": 22.85
+  },
+  {
+    "district": "서초구",
+    "safety_index": 48.33,
+    "cctv_score": 38.29,
+    "safepath_score": 16.25,
+    "police_score": 0.67,
+    "street_light_score": 19.9
+  },
+  {
+    "district": "성동구",
+    "safety_index": 65.04,
+    "cctv_score": 47.34,
+    "safepath_score": 11.81,
+    "police_score": 24.17,
+    "street_light_score": 100.0
+  },
+  {
+    "district": "성북구",
+    "safety_index": 64.94,
+    "cctv_score": 23.63,
+    "safepath_score": 69.39,
+    "police_score": 14.14,
+    "street_light_score": 23.39
+  },
+  {
+    "district": "송파구",
+    "safety_index": 50.37,
+    "cctv_score": 0.0,
+    "safepath_score": 19.8,
+    "police_score": 7.74,
+    "street_light_score": 51.77
+  },
+  {
+    "district": "양천구",
+    "safety_index": 51.16,
+    "cctv_score": 21.41,
+    "safepath_score": 0.0,
+    "police_score": 18.27,
+    "street_light_score": 9.05
+  },
+  {
+    "district": "영등포구",
+    "safety_index": 53.13,
+    "cctv_score": 31.96,
+    "safepath_score": 35.45,
+    "police_score": 14.19,
+    "street_light_score": 80.96
+  },
+  {
+    "district": "용산구",
+    "safety_index": 42.57,
+    "cctv_score": 56.74,
+    "safepath_score": 50.91,
+    "police_score": 7.38,
+    "street_light_score": 73.04
+  },
+  {
+    "district": "은평구",
+    "safety_index": 50.7,
+    "cctv_score": 29.08,
+    "safepath_score": 9.93,
+    "police_score": 6.04,
+    "street_light_score": 0.21
+  },
+  {
+    "district": "종로구",
+    "safety_index": 33.56,
+    "cctv_score": 69.84,
+    "safepath_score": 36.97,
+    "police_score": 47.71,
+    "street_light_score": 0.44
+  },
+  {
+    "district": "중구",
+    "safety_index": 40.46,
+    "cctv_score": 100.0,
+    "safepath_score": 100.0,
+    "police_score": 100.0,
+    "street_light_score": 4.56
+  },
+  {
+    "district": "중랑구",
+    "safety_index": 58.67,
+    "cctv_score": 34.2,
+    "safepath_score": 59.05,
+    "police_score": 16.15,
+    "street_light_score": 42.17
+  }
+]

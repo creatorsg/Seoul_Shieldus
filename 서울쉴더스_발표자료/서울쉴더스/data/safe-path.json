@@ -1,0 +1,10 @@
+[
+  { "id": "SAFE_01", "name": "종로구 혜화동 대학로 안심귀갓길", "district": "종로구", "lengthMeters": 850, "cctvCount": 14, "bellsCount": 8, "lightsCount": 24, "status": "ACTIVE" },
+  { "id": "SAFE_02", "name": "마포구 서교동 홍대입구 안심귀갓길", "district": "마포구", "lengthMeters": 1200, "cctvCount": 22, "bellsCount": 12, "lightsCount": 38, "status": "ACTIVE" },
+  { "id": "SAFE_03", "name": "관악구 신림동 고시촌 안심귀갓길", "district": "관악구", "lengthMeters": 1450, "cctvCount": 28, "bellsCount": 16, "lightsCount": 45, "status": "ACTIVE" },
+  { "id": "SAFE_04", "name": "강남구 논현동 주거골목 안심귀갓길", "district": "강남구", "lengthMeters": 980, "cctvCount": 18, "bellsCount": 10, "lightsCount": 32, "status": "ACTIVE" },
+  { "id": "SAFE_05", "name": "영등포구 영등포동 역사주변 안심귀갓길", "district": "영등포구", "lengthMeters": 1100, "cctvCount": 20, "bellsCount": 11, "lightsCount": 35, "status": "ACTIVE" },
+  { "id": "SAFE_06", "name": "광진구 화양동 건대입구 안심귀갓길", "district": "광진구", "lengthMeters": 920, "cctvCount": 16, "bellsCount": 9, "lightsCount": 28, "status": "ACTIVE" },
+  { "id": "SAFE_07", "name": "성북구 안암동 고려대후문 안심귀갓길", "district": "성북구", "lengthMeters": 880, "cctvCount": 15, "bellsCount": 8, "lightsCount": 26, "status": "ACTIVE" },
+  { "id": "SAFE_08", "name": "서대문구 신촌동 연세로 안심귀갓길", "district": "서대문구", "lengthMeters": 1050, "cctvCount": 19, "bellsCount": 10, "lightsCount": 30, "status": "ACTIVE" }
+]
