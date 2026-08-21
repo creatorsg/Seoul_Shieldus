@@ -1,6 +1,6 @@
 """
-네이버 지도 JS SDK 렌더링 - HTML/JS는 templates/naver_map.html에 분리해두고,
-여기서는 데이터만 채워서 완성된 HTML을 만들고 파일로 저장하는 역할만 한다.
+네이버 지도 JS SDK 렌더링 - HTML/JS는 templates/에 분리해두고, 여기서는 그 HTML을 실제
+URL로 서빙하는 역할을 한다.
 
 st.iframe()에 HTML 문자열을 바로 넘기면 안 된다 (srcdoc 방식이라 iframe의 출처가
 about:srcdoc이 되어 네이버의 도메인 인증이 항상 실패한다). 반드시 정적 파일로 저장한 뒤,
@@ -9,14 +9,35 @@ about:srcdoc이 되어 네이버의 도메인 인증이 항상 실패한다). �
 
 가로등처럼 마커 개수가 아주 많은 데이터는 낱개로 찍으면 브라우저가 버벅여서,
 NAVER가 공식 제공하는 MarkerClustering.js(static/vendor/)로 묶어서 그린다.
+
+** 2026-08 "지도 무한로딩" 버그 이후로 시설찾기/길찾기 지도가 파일을 다루는 방식이 다르다 **
+(자세한 진단 과정은 배포 후 실제로 겪은 문제를 그대로 옮긴 것 - 아래 두 함수 문서 참고):
+
+Streamlit Community Cloud는 "앱이 실행되는 도중에" 새로 쓴 static 파일의 서빙을 보장하지
+않는다(공식 문서: https://docs.streamlit.io/develop/concepts/configuration/serving-static-files
+- "Any files generated while the app is running... are not guaranteed to persist across user
+sessions."). 실제로 겪은 증상이 정확히 이거였다: 네트워크 탭엔 200이 뜨는데, 응답 내용이 우리
+지도 HTML이 아니라 Streamlit 자체 앱 셸이라 지도가 영원히 로딩 스피너에 머물렀다.
+(.gitignore가 frontend/static/*.html을 통째로 무시하고 있어서, 런타임에 쓴 파일이 배포
+저장소에는 애초에 존재하지 않았던 것도 원인 중 하나 - 지금은 아래 두 고정 파일만 예외로 뒀다.)
+
+  - 시설찾기 지도: 지구대/파출소/가로등/안심귀갓길 데이터가 사용자 입력과 무관하게 항상 같다.
+    그래서 scripts/build_static_maps.py로 배포 전에 딱 한 번 구워서 저장소에 커밋해두고
+    (FACILITY_PREBUILT_PATH), write_static_map()은 그 고정 파일을 그대로 가리키기만 한다.
+
+  - 길찾기 지도: 내 위치/목적지/경로는 매 요청 달라져서 미리 구울 수 없다. 그래서 HTML
+    파일 자체(templates/route_map.html, static/route_map.html에 그대로 커밋)는 고정해두고,
+    달라지는 데이터만 URL 해시(#...)에 실어 보낸다 - 해시는 브라우저가 서버로 아예 안 보내는
+    순수 클라이언트 값이라, 이 경로는 파일을 새로 쓸 필요 자체가 없다(render_route_map 참고).
 """
 
-import hashlib
 import json
+import hashlib
 import os
 import tempfile
 from pathlib import Path
 from string import Template
+from urllib.parse import quote
 
 import pandas as pd
 
@@ -25,9 +46,16 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 FACILITY_TEMPLATE_PATH = TEMPLATE_DIR / "naver_map.html"
 FACILITY_STATIC_STEM = "naver_map"
+# 배포 전에 scripts/build_static_maps.py로 미리 구워서 저장소에 커밋해두는 고정 파일.
+# 이게 있으면 write_static_map()은 런타임에 아무것도 안 쓰고 이 파일만 가리킨다.
+FACILITY_PREBUILT_FILENAME = "naver_map_prebuilt.html"
+FACILITY_PREBUILT_PATH = STATIC_DIR / FACILITY_PREBUILT_FILENAME
 
 ROUTE_TEMPLATE_PATH = TEMPLATE_DIR / "route_map.html"
-ROUTE_STATIC_STEM = "route_map"
+# 길찾기 지도는 이제 데이터를 안 굽는다 - 이 파일은 templates/route_map.html을 그대로 복사한
+# "껍데기"만 저장소에 커밋돼 있고(scripts/build_static_maps.py), 실제 데이터는 render_route_map()이
+# URL 해시로 매 요청 실어 보낸다.
+ROUTE_STATIC_FILENAME = "route_map.html"
 
 # 지도 위 종류별 색상(마커든 폴리라인이든). 여러 종류를 동시에 켜도 구분되도록 색을 다르게 준다.
 FACILITY_TYPE_STYLES = {
@@ -176,7 +204,21 @@ def render_naver_map(
 def write_static_map(
     client_id: str, police: pd.DataFrame, street_lights: pd.DataFrame, safe_paths: list
 ) -> str:
-    """네이버 지도(시설 찾기 탭) HTML을 STATIC_DIR에 저장하고, st.iframe에 넘길 URL 경로를 반환한다."""
+    """
+    시설 찾기 지도의 URL을 반환한다.
+
+    FACILITY_PREBUILT_PATH(scripts/build_static_maps.py로 미리 구워서 저장소에 커밋해둔 고정
+    파일)가 있으면 그걸 그대로 가리킨다 - 런타임에 아무것도 쓰지 않는다. 지구대/파출소/가로등/
+    안심귀갓길 데이터는 사용자 입력과 무관하게 항상 같아서, 매 세션 다시 구울 이유가 없다.
+    무엇보다 Streamlit Community Cloud는 "실행 도중에" 새로 쓴 static 파일의 서빙을 보장하지
+    않기 때문에(모듈 docstring 참고), 배포본에서는 반드시 이 고정 파일 경로를 타야 한다.
+
+    고정 파일이 아직 없으면(빌드 스크립트를 안 돌린 로컬 개발/프리뷰 중) 예전처럼 그 자리에서
+    만들어 저장한다 - 이 폴백 경로는 여전히 Windows 파일 잠금 문제 때문에 해시 파일명을 쓴다
+    (_write_versioned_html).
+    """
+    if FACILITY_PREBUILT_PATH.exists():
+        return f"/app/static/{FACILITY_PREBUILT_FILENAME}"
     STATIC_DIR.mkdir(exist_ok=True)
     html = render_naver_map(client_id, police, street_lights, safe_paths)
     return _write_versioned_html(FACILITY_STATIC_STEM, html)
@@ -188,27 +230,32 @@ def render_route_map(
     my_location: tuple,
     destination_name: str,
     route: list,
-    height: int = 560,
 ) -> str:
     """
-    지구대/파출소 마커(목적지는 강조) + 내 위치 + 경로 폴리라인을 그리는 HTML을 반환한다.
-    my_location, route는 Streamlit(Python)에서 이미 구한 값을 그대로 데이터로 꽂아 넣는다
-    (TMAP 호출은 route_finder.py가 서버 쪽에서 하고, 여기서는 좌표만 그린다).
+    길찾기 지도 URL을 만든다. 지도 HTML 파일 자체(static/route_map.html)는 저장소에 고정으로
+    커밋돼 있고, 요청마다 달라지는 데이터(내 위치/목적지/경로/마커)는 파일을 새로 쓰지 않고
+    URL 해시(#...)에 실어 보낸다. TMAP 호출은 route_finder.py가 서버 쪽에서 이미 끝내고,
+    여기서는 좌표만 그린다.
+
+    해시는 브라우저가 서버로 아예 보내지 않는 순수 클라이언트 값이다. 이 방식이면 요청마다
+    파일을 쓸 필요 자체가 없어져서, Streamlit Cloud의 "런타임에 쓴 static 파일은 서빙 보장
+    안 됨" 제약을 애초에 만나지 않는다 - 예전에 이 경로에서 겪던 Windows 파일 잠금 문제도
+    같이 사라진다.
     """
-    template = Template(ROUTE_TEMPLATE_PATH.read_text(encoding="utf-8"))
-    return template.substitute(
-        client_id=client_id,
-        height=height,
-        type_styles_json=json.dumps(FACILITY_TYPE_STYLES, ensure_ascii=False),
-        markers_by_type_json=json.dumps(_markers_by_type(police), ensure_ascii=False),
-        destination_name_json=json.dumps(destination_name, ensure_ascii=False),
-        my_location_json=json.dumps(
+    payload = {
+        "client_id": client_id,
+        "type_styles": FACILITY_TYPE_STYLES,
+        "markers_by_type": _markers_by_type(police),
+        "destination_name": destination_name,
+        "my_location": (
             {"lat": my_location[0], "lng": my_location[1]} if my_location else None
         ),
-        route_json=json.dumps(
-            [{"lat": lat, "lng": lng} for lat, lng in (route or [])], ensure_ascii=False
-        ),
-    )
+        "route": [{"lat": lat, "lng": lng} for lat, lng in (route or [])],
+    }
+    # safe="" : 콤마/콜론/한글 등 JSON에 흔한 문자를 전부 이스케이프한다. quote()의 기본
+    # safe 값("/")을 그대로 두면 주소 문자열 속 "/"가 인코딩 안 돼 해시 파싱이 깨질 수 있다.
+    encoded = quote(json.dumps(payload, ensure_ascii=False), safe="")
+    return f"/app/static/{ROUTE_STATIC_FILENAME}#{encoded}"
 
 
 def write_route_map(
@@ -218,7 +265,5 @@ def write_route_map(
     destination_name: str,
     route: list,
 ) -> str:
-    """길찾기 탭용 지도 HTML을 저장한다. 시설 위치 탭(naver_map.*.html)과 stem을 분리해서 서로 안 건드리게 한다."""
-    STATIC_DIR.mkdir(exist_ok=True)
-    html = render_route_map(client_id, police, my_location, destination_name, route)
-    return _write_versioned_html(ROUTE_STATIC_STEM, html)
+    """app.py 호출부 이름을 그대로 유지하기 위한 얇은 별칭. render_route_map 참고."""
+    return render_route_map(client_id, police, my_location, destination_name, route)
