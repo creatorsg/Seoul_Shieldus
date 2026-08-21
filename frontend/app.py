@@ -701,7 +701,11 @@ def render_home_page(page_heatmap, page_facility, page_route) -> None:
     # [1, 2, 1] 비율을 [1, 1, 1]이나 [1, 3, 1] 등으로 바꿔서 사진 크기를 조절할 수 있습니다.
     img_l, img_c, img_r = st.columns([1, 12, 1])
     with img_c:
-        st.image("hero.png", use_container_width=True)
+        # "hero.png" 같은 상대경로는 streamlit run을 어느 폴더에서 실행했느냐(cwd)에 따라
+        # 찾는 위치가 달라진다 - 리포 루트에서 실행하면 frontend/hero.png를 못 찾는다.
+        # BASE_DIR(리포 루트, data_access.py에서 정의)를 기준으로 절대경로를 만들어서
+        # 어디서 실행하든 항상 같은 파일을 가리키게 한다.
+        st.image(str(BASE_DIR / "frontend" / "hero.png"), use_container_width=True)
 
     # 3. 메인 텍스트 (늦은 밤 골목길...)
     st.markdown(
@@ -982,7 +986,7 @@ def main() -> None:
         # 대신 이 블록(마커+로고)을 position:absolute로 사이드바 좌측 하단에 고정한다 -
         # 화면 크기와 무관하게 항상 정확히 같은 자리(16px, 16px)에 붙는다.
         st.markdown("<span class='sidebar-logo-marker'></span>", unsafe_allow_html=True)
-        st.image("logo.png", width=67)
+        st.image(str(BASE_DIR / "frontend" / "logo.png"), width=67)
 
     current_page.run()
     # 기본(첫 번째) 페이지가 이제 홈이라, url_path가 빈 문자열로 나올 때 대체값도 "home"으로 맞춘다
