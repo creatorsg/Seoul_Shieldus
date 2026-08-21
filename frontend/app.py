@@ -167,15 +167,36 @@ def render_district_detail(row, cctv_stats) -> None:
     # 알아서 다시 정렬해버려서, 우리가 값(대수) 기준 내림차순으로 미리 만들어둔 dict 순서가
     # 무시되고 조용히 다른 순서(사실상 알파벳/가나다순)로 그려진다. sort=False를 줘야 넘겨준
     # dict 순서 그대로("많은 순") 막대가 그려진다.
-    st.bar_chart(_sorted_cctv_purpose_counts(c), height=220, sort=False)
+    #
+    # horizontal=True도 같이 준다: 세로 막대(기본값)는 "방범용"/"무단투기단속용"처럼 4글자
+    # 이상인 라벨이 가로 폭에 안 들어가서 Altair가 자동으로 90도 눕혀버린다. 막대를 가로로
+    # 눕히면 목적명이 y축 왼쪽에 원래 방향(가로) 그대로 나오기 때문에 이 문제가 자체로 해결된다.
+    st.bar_chart(_sorted_cctv_purpose_counts(c), height=220, sort=False, horizontal=True)
 
 
 def _sorted_cctv_purpose_counts(c) -> dict:
+    """
+    CCTV 목적별 대수를 많은 순으로 정렬해서 반환한다.
+    CCTV_PURPOSE_FIELDS에 적어둔 순서(방범→어린이보호→...→기타) 그대로 막대그래프를 그리면
+    구마다 값이 들쭉날쭉이라 막대 높이가 뒤죽박죽으로 보인다. 값 기준 내림차순으로 정렬해두면
+    어느 구를 보든 "가장 많이 설치된 목적이 왼쪽부터" 순서로 읽혀서 비교하기 쉽다.
+    dict의 삽입 순서를 st.bar_chart가 그대로 x축 순서로 써주기 때문에, 여기서 미리 정렬한
+    순서대로 dict를 만들어주기만 하면 된다.
+    """
     counts = {label: c[col] for col, label in CCTV_PURPOSE_FIELDS}
     return dict(sorted(counts.items(), key=lambda item: item[1], reverse=True))
 
 
 def _geo_with_score_properties(geo: dict, df) -> dict:
+    """
+    geojson feature.properties에 안심지수를 미리 섞어 넣은 사본을 반환한다.
+
+    GeoJsonTooltip/GeoJsonPopup은 항상 geojson feature의 properties만 읽는다 - Choropleth에
+    따로 넘긴 data=df는 색칠(fill-color 매칭)에만 쓰이고 툴팁/팝업 쪽에서는 안 보인다. 그래서
+    호버/클릭했을 때 점수까지 같이 보여주려면, 지도를 그리기 전에 df의 안심지수를 구 이름으로
+    매칭해서 geojson properties 안에 미리 넣어둬야 한다. 원본 geo(= @st.cache_data로 캐싱된
+    객체)를 그대로 고치면 캐시에 값이 계속 누적/오염될 수 있어 깊은 복사본을 만들어 고친다.
+    """
     scores = dict(zip(df["구"], df["안심지수"]))
     geo_copy = copy.deepcopy(geo)
     for feat in geo_copy["features"]:
@@ -213,6 +234,13 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
     """
     st.header("안심지수 히트맵")
 
+    with st.expander("안심지수는 어떻게 계산되나요?"):
+        st.markdown(
+            "구별 **CCTV 설치 현황**, **지구대/파출소 접근성**, **안심귀갓길**, **가로등**, "
+            "**범죄 안전도**, 이렇게 5개 지표를 종합해 0~100점으로 계산합니다. "
+            "각 지표는 자치구 상세 보기에서 점수별로 따로 확인할 수 있습니다.\n\n"
+            "⚠️ 지표별 정확한 반영 비율(가중치)은 데이터팀 확인 후 업데이트할 예정입니다."
+        )
 
     m = folium.Map(location=[37.5665, 126.9780], zoom_start=11)
     # Leaflet은 지역(폴리곤)을 클릭 가능한 SVG <path>로 그리는데, 클릭하면 그 <path>에 브라우저
