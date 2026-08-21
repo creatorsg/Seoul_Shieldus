@@ -17,9 +17,10 @@ from dotenv import load_dotenv
 from streamlit_folium import st_folium
 from streamlit_js_eval import streamlit_js_eval
 
-from colors import score_to_color
+from colors import SCORE_COLOR_BANDS, score_to_color
 from data_access import (
     BASE_DIR,
+    CRIME_RATE_COLUMN,
     _polygon_centroid,
     get_cctv_stats,
     get_district_scores,
@@ -116,6 +117,30 @@ CCTV_PURPOSE_FIELDS = [
 ]
 
 
+# 홈 화면의 "핵심 기능" 카드 3개 - (아이콘, 제목, 설명, 그 기능 페이지의 url_path).
+# url_path는 main()에서 만드는 st.Page들의 url_path와 정확히 같아야 st.page_link가 연결된다.
+HOME_FEATURE_CARDS = [
+    (
+        "🛡️",
+        "안심지수 히트맵",
+        "자치구별 안심지수를 지도로 한눈에 비교하고, 어떤 지표가 점수에 영향을 줬는지 확인하세요.",
+        "index",
+    ),
+    (
+        "📍",
+        "시설 찾기",
+        "내 주변 지구대·파출소·CCTV·안심귀갓길·가로등 위치를 지도에서 찾아보세요.",
+        "facilities",
+    ),
+    (
+        "🧭",
+        "길찾기",
+        "가장 가까운 지구대·파출소까지 도보/자동차 경로와 예상 소요시간을 안내받으세요.",
+        "route",
+    ),
+]
+
+
 def _warn_missing_env(var_name: str) -> None:
     """
     API 키 등 .env 설정이 빠졌을 때 공통 문구로 경고한다.
@@ -132,15 +157,17 @@ def _render_score_bar(label: str, score: float) -> None:
     """
     점수만큼 채워지는 막대를 그린다. st.progress는 막대 색이 테마 색 하나로 고정이라
     점수가 높든 낮든 같은 색으로 보여서, 점수에 따라 색(빨강~초록)이 바뀌게 직접 HTML로 그린다.
+    글자 크기(13→14px)/막대 두께(8→10px)/간격(10→16px)을 살짝 키워서, 5개 지표가 다닥다닥
+    붙어 보이던 걸 한 항목씩 눈에 들어오게 여백을 넉넉히 줬다.
     """
     color = score_to_color(score)
     width = max(0, min(100, score))
     st.markdown(
         f"""
-        <div style="margin-bottom:10px;">
-          <div style="font-size:13px;margin-bottom:3px;">{label} {score:.1f}</div>
-          <div style="background:#E0E0E0;border-radius:4px;height:8px;">
-            <div style="width:{width}%;background:{color};height:8px;border-radius:4px;"></div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:14px;margin-bottom:5px;color:#1B1B1B;">{label} <strong>{score:.1f}</strong></div>
+          <div style="background:#E0E0E0;border-radius:5px;height:10px;">
+            <div style="width:{width}%;background:{color};height:10px;border-radius:5px;"></div>
           </div>
         </div>
         """,
@@ -150,8 +177,13 @@ def _render_score_bar(label: str, score: float) -> None:
 
 def render_district_detail(row, cctv_stats) -> None:
     """선택된 자치구 하나의 안심지수/세부 점수 + CCTV 목적별 통계를 그린다."""
-    st.markdown(f"#### {row['구']} 상세")
+    st.subheader(f"{row['구']} 상세")
     st.metric("안심지수", f"{row['안심지수']}점")
+    st.caption(
+        "아래 5개 지표(CCTV·귀갓길·파출소·가로등·범죄안전)를 종합해 계산한 점수입니다. "
+        "산정 방식은 위쪽 '안심지수는 어떻게 계산되나요?'에서 확인할 수 있습니다."
+    )
+    st.write("")
     for label, col in DETAIL_SCORE_FIELDS:
         _render_score_bar(label, row[col])
 
@@ -161,7 +193,8 @@ def render_district_detail(row, cctv_stats) -> None:
     if district_cctv.empty:
         return
     c = district_cctv.iloc[0]
-    st.markdown("##### CCTV 목적별 설치 현황")
+    st.divider()
+    st.subheader("CCTV 목적별 설치 현황")
     st.caption(f"총 {c['총_CCTV']:,}대 (그중 방범 목적 {c['방범_합계']:,}대)")
     # sort=False가 중요하다: st.bar_chart는 기본값(sort=True)일 때 Altair가 카테고리(구매목적명)를
     # 알아서 다시 정렬해버려서, 우리가 값(대수) 기준 내림차순으로 미리 만들어둔 dict 순서가
@@ -205,6 +238,43 @@ def _geo_with_score_properties(geo: dict, df) -> dict:
     return geo_copy
 
 
+def _district_style_function(feature: dict) -> dict:
+    """
+    geojson feature(구 하나)의 채우기 색을 colors.py의 score_to_color()로 정한다.
+    folium.Choropleth의 자체 배색(fill_color="RdYlGn") 대신 이걸 쓰는 이유는 colors.py
+    docstring에 적어뒀다 - 요약하면 "지도만 다른 기준으로 칠해지는 문제"를 없애기 위해서다.
+    """
+    score = feature["properties"].get("score")
+    color = score_to_color(score) if score is not None else "#BDBDBD"
+    return {"fillColor": color, "color": "#424242", "weight": 1, "fillOpacity": 0.75}
+
+
+def _district_highlight_function(feature: dict) -> dict:
+    """마우스가 올라간 구의 칸을 강조한다 (테두리를 굵게, 채우기를 더 진하게)."""
+    return {"weight": 3, "fillOpacity": 0.95}
+
+
+def _build_score_legend_html() -> str:
+    """
+    지도 오른쪽 아래에 얹을 범례 HTML. colors.py의 SCORE_COLOR_BANDS를 그대로 읽어서 만들기
+    때문에, 나중에 임계값/색이 바뀌어도 이 범례가 알아서 같이 바뀐다(따로 손댈 곳이 없다).
+    """
+    labels = ["위험 (40점 미만)", "주의 (40~60점)", "보통 (60~75점)", "안전 (75점 이상)"]
+    rows = "".join(
+        f'<div style="display:flex;align-items:center;margin-top:2px;">'
+        f'<span style="display:inline-block;width:11px;height:11px;background:{color};'
+        f'border-radius:2px;margin-right:6px;flex-shrink:0;"></span>{label}</div>'
+        for (_, color, _text_color), label in zip(SCORE_COLOR_BANDS, labels)
+    )
+    return (
+        '<div style="position:fixed;bottom:24px;right:24px;z-index:9999;background:#fff;'
+        'padding:10px 14px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);'
+        'font-size:12px;line-height:1.5;color:#1B1B1B;">'
+        '<div style="font-weight:700;margin-bottom:4px;">안심지수</div>'
+        f"{rows}</div>"
+    )
+
+
 def _add_district_labels(m: "folium.Map", geo: dict) -> None:
     """
     자치구 이름을 각 자치구 중심점에 고정 텍스트로 올린다 (지금까지는 색으로만 구분되던 것).
@@ -225,6 +295,59 @@ def _add_district_labels(m: "folium.Map", geo: dict) -> None:
                 )
             ),
         ).add_to(m)
+
+
+def render_home_page(df, pages: dict) -> None:
+    """
+    홈(소개) 페이지: 처음 들어온 사람이 "이게 뭐 하는 서비스인지" 바로 알 수 있게 하는 첫 화면.
+    지금까지는 로그인하자마자 바로 히트맵부터 보여줘서 설명이 하나도 없었는데, 앱이라면 첫
+    화면에 프로젝트 소개/핵심 기능/데이터 출처 정도는 있어야 처음 쓰는 사람이 헤매지 않는다는
+    피드백을 반영했다.
+
+    pages: main()에서 만든 {url_path: st.Page} 딕셔너리. 카드마다 "바로가기" 링크를 연결하려면
+    실제 st.Page 객체가 필요한데(st.page_link는 경로 문자열이 아니라 Page 객체를 받는 방식이라),
+    main()이 pages를 다 만든 뒤에 넘겨받아 쓴다. 클로저로 pages를 참조하는 lambda가 이 함수보다
+    먼저 만들어지긴 하지만, 실제로 이 함수가 호출되는 시점(페이지 렌더링 시)에는 이미 pages
+    딕셔너리에 4개 페이지가 다 채워져 있어서 문제 없다.
+    """
+    st.subheader("서울시 25개 자치구의 치안 정보를 한눈에")
+    st.markdown(
+        "CCTV, 지구대·파출소, 안심귀갓길, 가로등, 범죄율 데이터를 종합해 자치구별 **안심지수**를 "
+        "계산하고, 내 주변 치안 시설을 찾고 길안내까지 받을 수 있는 서비스입니다."
+    )
+
+    if not df.empty:
+        avg_score = df["안심지수"].mean()
+        top = df.sort_values("안심지수", ascending=False).iloc[0]
+        col1, col2 = st.columns(2)
+        col1.metric("서울 평균 안심지수", f"{avg_score:.1f}점")
+        col2.metric("안심지수 1위 자치구", f"{top['구']} ({top['안심지수']:.1f}점)")
+
+    st.divider()
+    st.subheader("핵심 기능")
+    cols = st.columns(3)
+    for col, (icon, title, desc, url_path) in zip(cols, HOME_FEATURE_CARDS):
+        with col:
+            st.markdown(
+                f"""
+                <div style="border:1px solid #E0E0E0;border-radius:10px;padding:18px 16px;
+                            min-height:170px;">
+                  <div style="font-size:28px;">{icon}</div>
+                  <div style="font-weight:700;font-size:16px;margin:8px 0 6px;">{title}</div>
+                  <div style="font-size:13px;color:#555555;line-height:1.5;">{desc}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.page_link(pages[url_path], label=f"{title} 바로가기", icon="➡️")
+
+    st.divider()
+    st.subheader("데이터 출처")
+    st.caption(
+        "지구대·파출소 위치, CCTV 설치 현황, 여성안심귀갓길 — 서울 열린데이터광장(data.seoul.go.kr)  \n"
+        "범죄 통계, 가로등 등 안전시설물 — 공공데이터포털(data.go.kr)  \n"
+        "지도 표시 — 네이버 클라우드 플랫폼 Maps API · 도보/자동차 경로 안내 — TMAP(SK Open API)"
+    )
 
 
 def render_index_page(geo: dict, df, cctv_stats) -> None:
@@ -252,36 +375,25 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
         folium.Element("<style>.leaflet-interactive:focus { outline: none; }</style>")
     )
     geo_scored = _geo_with_score_properties(geo, df)
-    # RdYlGn: 낮은 안심지수(위험)는 빨강, 높은 안심지수(안전)는 초록으로 직관적으로 읽히는 배색.
-    # highlight=True: 마우스가 올라간(호버된) 칸의 테두리를 굵게, 채우기를 더 진하게 바꿔서
-    # "지금 이 칸을 가리키고 있다"는 게 시각적으로 보이게 한다 (folium.Choropleth 내장 기능 -
-    # 기본값은 line_weight+2, fill_opacity+0.2). 원래는 색으로 칠해진 구가 다 똑같이 밋밋해서
-    # 어느 구 위에 커서가 있는지 구분이 안 됐는데, 이 옵션 하나로 자체 해결된다.
-    choropleth = folium.Choropleth(
-        geo_data=geo_scored,
-        data=df,
-        columns=["구", "안심지수"],
-        key_on="feature.properties.name",
-        fill_color="RdYlGn",
-        fill_opacity=0.75,
-        line_opacity=0.5,
-        legend_name="안심 지수",
-        highlight=True,
-    ).add_to(m)
-
-    # 위 highlight=True는 "칸 자체를 강조해서 보여주는" 기능이고, 아래 툴팁/팝업은 별개로
-    # "이름/점수 텍스트를 보여주는" 기능이라 서로 안 겹친다. Choropleth가 이미 만든 geojson
-    # 레이어에 그대로 얹는다 - 별도 GeoJson 레이어를 하나 더 추가하면 폴리곤 데이터를 브라우저로
-    # 두 번 보내는 셈이라 비효율적이다. 모바일은 호버가 없으니 클릭해도 같은 정보(GeoJsonPopup)가
-    # 뜨게 둘 다 붙인다.
     tooltip_popup_fields = ["name", "score"]
     tooltip_popup_aliases = ["자치구", "안심지수"]
-    choropleth.geojson.add_child(
-        folium.GeoJsonTooltip(fields=tooltip_popup_fields, aliases=tooltip_popup_aliases)
-    )
-    choropleth.geojson.add_child(
-        folium.GeoJsonPopup(fields=tooltip_popup_fields, aliases=tooltip_popup_aliases)
-    )
+    # folium.Choropleth 대신 GeoJson을 직접 써서 style_function으로 색칠한다 - colors.py의
+    # score_to_color()를 그대로 호출하기 때문에, 이 지도의 색이 랭킹 표/상세 페이지 점수 막대와
+    # 항상 같은 기준으로 맞는다(자세한 이유는 colors.py 모듈 docstring 참고).
+    # highlight_function: 마우스가 올라간(호버된) 칸의 테두리를 굵게, 채우기를 더 진하게 바꿔서
+    # "지금 이 칸을 가리키고 있다"는 게 시각적으로 보이게 한다. 원래는 색칠된 구가 다 똑같이
+    # 밋밋해서 어느 구 위에 커서가 있는지 구분이 안 됐는데, 이걸로 해결된다.
+    folium.GeoJson(
+        geo_scored,
+        style_function=_district_style_function,
+        highlight_function=_district_highlight_function,
+        tooltip=folium.GeoJsonTooltip(fields=tooltip_popup_fields, aliases=tooltip_popup_aliases),
+        popup=folium.GeoJsonPopup(fields=tooltip_popup_fields, aliases=tooltip_popup_aliases),
+    ).add_to(m)
+
+    # colors.py 기준 4단계 범례를 지도 위에 얹는다. Choropleth 내장 범례(legend_name)를 쓰던
+    # 자리를 대신한다 - 이제 범례/지도/표/상세 점수 막대가 전부 같은 색-점수 대응표를 본다.
+    m.get_root().html.add_child(folium.Element(_build_score_legend_html()))
 
     # 색만으로는 어느 구인지 바로 안 읽혀서, 중심점에 구 이름 텍스트를 고정으로 얹는다.
     _add_district_labels(m, geo)
@@ -294,8 +406,14 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
 
     if view == "전체 확인":
         st.subheader("자치구 랭킹")
+        # 처음엔 지도/상세 페이지와 맞춰 점수 칸에 배경색(빨강~초록)을 칠했었는데, 25행 전체가
+        # 색으로 뒤덮이니 오히려 눈이 피로하다는 피드백을 받고 뺐다. 표는 순위를 빠르게 훑어보는
+        # 용도라 색 없이 숫자만 보는 게 더 편하다고 판단 - 색 기준(빨강=위험~초록=안전)은
+        # 지도 범례와 지역별 상세의 점수 막대에서 여전히 확인할 수 있다.
         ranking = df.sort_values("안심지수", ascending=False)[["구", "안심지수"]]
-        st.dataframe(ranking, width="stretch", hide_index=True)
+        st.dataframe(
+            ranking.style.format({"안심지수": "{:.1f}"}), width="stretch", hide_index=True
+        )
     else:
         selected_gu = st.selectbox("자치구 선택", sorted(df["구"].tolist()))
         render_district_detail(df[df["구"] == selected_gu].iloc[0], cctv_stats)
@@ -303,13 +421,19 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
 
 def _facility_display_table(facilities, df):
     """
-    시설 찾기 표에 위도/경도 대신 사용자에게 실제로 쓸모 있는 정보(구/주소/범죄안전 점수)를 보여준다.
+    시설 찾기 표에 위도/경도 대신 사용자에게 실제로 쓸모 있는 정보(구/주소/범죄율)를 보여준다.
     위도/경도는 애초에 지도에 마커 찍을 때 좌표로 쓰려던 값이지 사용자가 표에서 볼 이유가 없다는
-    피드백을 반영했다. df(자치구별 안심지수 점수표)의 범죄안전_점수를 "구" 기준으로 매칭해 붙인다.
+    피드백을 반영했다.
+
+    범죄안전_점수(0~100 정규화 점수) 대신 원본 범죄율(CRIME_RATE_COLUMN)을 보여주도록 바꿨다 -
+    정규화 점수만 보면 "0점"이 왜 0점인지 감이 안 오는데(실제로 이 때문에 데이터 오류로
+    오해한 적이 있었다), 원본 비율 숫자가 그대로 보이면 근거가 바로 눈에 들어온다. 안심지수
+    히트맵/상세 페이지는 기존 그대로(정규화 점수) 두고, 이 표만 바꾼다. df(자치구별 안심지수
+    점수표)의 CRIME_RATE_COLUMN을 "구" 기준으로 매칭해 붙인다.
     """
-    score_by_district = dict(zip(df["구"], df["범죄안전_점수"]))
+    rate_by_district = dict(zip(df["구"], df[CRIME_RATE_COLUMN]))
     table = facilities[["이름", "구", "주소", "종류"]].copy()
-    table["범죄안전 점수"] = table["구"].map(score_by_district)
+    table[CRIME_RATE_COLUMN] = table["구"].map(rate_by_district)
     return table
 
 
@@ -331,7 +455,18 @@ def render_facility_page(facilities, df) -> None:
         "켜면 표시됩니다. 가로등은 개수가 많아 클러스터로 묶여서 나옵니다. "
         "지도 위 지구대/파출소 마커를 클릭(모바일은 터치)하면 주소가 복사됩니다."
     )
-    st.dataframe(_facility_display_table(facilities, df), width="stretch", hide_index=True)
+    table = _facility_display_table(facilities, df)
+    if table[CRIME_RATE_COLUMN].isna().all():
+        # 원본 범죄율은 데이터 파일이 한글(alt) 스키마일 때만 들어있다 - 영문 스키마나 더미
+        # 데이터일 땐 전부 NaN이라, 표가 텅 비어보이지 않게 미리 이유를 알려준다.
+        st.caption(
+            f"'{CRIME_RATE_COLUMN}'는 원본 데이터 파일에 실제 범죄율 값이 있을 때만 표시됩니다."
+        )
+    st.dataframe(
+        table.style.format({CRIME_RATE_COLUMN: "{:.1f}"}, na_rep="-"),
+        width="stretch",
+        hide_index=True,
+    )
 
 
 def render_route_page(facilities) -> None:
@@ -512,30 +647,42 @@ def main() -> None:
     # 사이드바가 "자치구 필터"가 아니라 페이지를 고르는 앱 내비게이션 역할을 한다 (기본 동작 -
     # 왼쪽에서 접었다 펼 수 있는 사이드바 형태). 각 페이지에 icon을 지정해서 사이드바 목록에서도
     # 어떤 탭인지 아이콘으로 바로 구분되게 했다.
-    # 세 page 콜백이 다 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
-    # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 셋 다 이름이 같아서 충돌한다)
+    # 모든 page 콜백이 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
+    # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 다 이름이 같아서 충돌한다)
     # url_path를 직접 지정해서 각 페이지 주소가 겹치지 않게 한다.
-    pages = [
-        st.Page(
-            lambda: render_index_page(geo, df, cctv_stats),
-            title="안심지수 히트맵",
-            icon="🛡️",
-            url_path="index",
-        ),
-        st.Page(
-            lambda: render_facility_page(facilities, df),
-            title="시설 찾기",
-            icon="📍",
-            url_path="facilities",
-        ),
-        st.Page(
-            lambda: render_route_page(facilities),
-            title="길찾기",
-            icon="🧭",
-            url_path="route",
-        ),
-    ]
-    current_page = st.navigation(pages)
+    #
+    # list가 아니라 {url_path: st.Page} 딕셔너리로 만드는 이유: 홈 페이지의 "바로가기" 카드가
+    # 다른 페이지로 이동하려면 st.page_link에 그 페이지의 st.Page 객체를 그대로 넘겨야 한다.
+    # render_home_page(df, pages)가 이 딕셔너리를 통째로 받아서 pages["index"]처럼 이름으로
+    # 찾아 쓴다 - render_home_page의 lambda가 pages보다 먼저 줄에 쓰여 있지만, 실제로 호출되는
+    # 시점(페이지가 열릴 때)엔 아래 줄들까지 다 실행된 뒤라 4개 페이지가 이미 다 채워져 있다.
+    pages = {}
+    pages["home"] = st.Page(
+        lambda: render_home_page(df, pages),
+        title="홈",
+        icon="🏠",
+        url_path="home",
+        default=True,
+    )
+    pages["index"] = st.Page(
+        lambda: render_index_page(geo, df, cctv_stats),
+        title="안심지수 히트맵",
+        icon="🛡️",
+        url_path="index",
+    )
+    pages["facilities"] = st.Page(
+        lambda: render_facility_page(facilities, df),
+        title="시설 찾기",
+        icon="📍",
+        url_path="facilities",
+    )
+    pages["route"] = st.Page(
+        lambda: render_route_page(facilities),
+        title="길찾기",
+        icon="🧭",
+        url_path="route",
+    )
+    current_page = st.navigation(list(pages.values()))
     current_page.run()
     # 기본(첫 번째) 페이지는 url_path가 빈 문자열로 나와서, 스크롤 저장 키가 비어도 괜찮게
     # "index"로 대체해준다 (다른 페이지와 구분만 되면 되는 저장용 키라 값 자체는 임의로 정해도 무방).
