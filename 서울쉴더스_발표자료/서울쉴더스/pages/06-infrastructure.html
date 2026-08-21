@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06. 인프라 상관성 분석 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • CORRELATION ANALYSIS</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-amber">06. CORRELATION ANALYSIS</span>
+                    <span class="text-xs text-sub">보안 인프라와 범죄 발생 간의 통계적 검증</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon" style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">물리적 보안 인프라와 범죄 발생의 통계적 상관성 검증</h1>
+                        <p class="sub-title">원자료 상관계수(r=0.561) vs 인구 보정 후 상관계수(r=0.120) 대조 분석</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Statistical Rigor</span></div>
+                <span class="slide-counter">SLIDE 06 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 1.4rem;">
+            
+            <!-- Left: 3-Step Interpretation & Rigor Principle -->
+            <div class="flex flex-col justify-between" style="gap: 8px;">
+                <div class="security-card" style="padding: 9px 12px;">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-primary">STEP 1. 원자료 비교</span>
+                        <span class="text-xs font-mono font-bold text-primary">r = 0.561</span>
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.72rem;">가로등/CCTV 절대 수 ↔ 범죄 절대건수 간 유의미한 양의 상관관계 관찰</p>
+                </div>
+
+                <div class="security-card" style="padding: 9px 12px; border-color: rgba(245,158,11,0.35);">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-amber">STEP 2. 인구 규모 보정</span>
+                        <span class="text-xs font-mono font-bold text-amber">r = 0.120</span>
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.72rem;">1만 명당 지표로 분모 통제 시 상관계수가 0.120으로 대폭 급감 (상관성 약화)</p>
+                </div>
+
+                <div class="security-card" style="padding: 9px 12px; border-color: rgba(16,185,129,0.35);">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-mint">STEP 3. 통계적 원인 도출</span>
+                        <span class="badge badge-mint" style="font-size: 0.6rem;">도시 규모 효과</span>
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.72rem;">인구가 많은 대규모 자치구에 인프라와 범죄 발생이 함께 집중된 외생적 착시 입증</p>
+                </div>
+
+                <!-- Mandatory Warning Banner -->
+                <div class="security-card" style="padding: 8px 12px; background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.35); text-align: center;">
+                    <div class="text-xs font-bold text-rose">
+                        🚫 상관관계 ≠ 인과관계 (Correlation ≠ Causation)
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.68rem; color: #fecdd3; margin-top: 2px;">
+                        가로등이나 CCTV가 많아서 범죄가 증가하는 것이 결코 아니며, 인과관계로 해석하지 않는 데이터 분석의 엄밀성을 지켰습니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: Scatter Plot & Regression Graph Graphic (SVG Mock) -->
+            <div class="security-card flex flex-col justify-between" style="padding: 1rem 1.2rem;">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-heading">가로등 수 ↔ 범죄 발생건수 산점도 & 선형 회귀선</span>
+                    <span class="font-mono text-xs text-primary">y = 0.8415x + 2583.4</span>
+                </div>
+
+                <!-- SVG Scatter Plot with Points and Regression Line -->
+                <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 180px;">
+                    <svg viewBox="0 0 420 200" style="width: 100%; height: 100%; max-height: 200px;" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Axes & Grid -->
+                        <line x1="40" y1="170" x2="390" y2="170" stroke="rgba(255,255,255,0.15)" stroke-width="1.2"/>
+                        <line x1="40" y1="20" x2="40" y2="170" stroke="rgba(255,255,255,0.15)" stroke-width="1.2"/>
+                        
+                        <g stroke="rgba(255,255,255,0.06)" stroke-dasharray="2 2">
+                            <line x1="40" y1="130" x2="390" y2="130"/><line x1="40" y1="90" x2="390" y2="90"/><line x1="40" y1="50" x2="390" y2="50"/>
+                            <line x1="120" y1="20" x2="120" y2="170"/><line x1="200" y1="20" x2="200" y2="170"/><line x1="280" y1="20" x2="280" y2="170"/><line x1="360" y1="20" x2="360" y2="170"/>
+                        </g>
+
+                        <!-- Axis Labels -->
+                        <text x="390" y="185" font-size="8" fill="#94a3b8" text-anchor="end">가로등 수 (개)</text>
+                        <text x="35" y="15" font-size="8" fill="#94a3b8" text-anchor="start">범죄 발생건수 (건)</text>
+
+                        <!-- Linear Regression Trend Line -->
+                        <line x1="50" y1="150" x2="380" y2="40" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 2"/>
+
+                        <!-- District Scatter Points -->
+                        <!-- Gangnam -->
+                        <circle cx="370" cy="35" r="5.5" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>
+                        <text x="365" y="24" font-size="8" font-weight="bold" fill="#60a5fa">강남 (6,107)</text>
+
+                        <!-- Songpa -->
+                        <circle cx="350" cy="55" r="4.5" fill="#3b82f6"/>
+                        <!-- Gangseo -->
+                        <circle cx="330" cy="70" r="4.5" fill="#3b82f6"/>
+                        <!-- Gwanak -->
+                        <circle cx="310" cy="65" r="4.5" fill="#3b82f6"/>
+                        <!-- Yeongdeungpo -->
+                        <circle cx="280" cy="60" r="4.5" fill="#3b82f6"/>
+                        <!-- Nowon -->
+                        <circle cx="290" cy="90" r="4.5" fill="#3b82f6"/>
+                        <!-- Mapo -->
+                        <circle cx="240" cy="85" r="4.5" fill="#3b82f6"/>
+                        <!-- Seocho -->
+                        <circle cx="320" cy="80" r="4.5" fill="#3b82f6"/>
+                        <!-- Jongro -->
+                        <circle cx="240" cy="115" r="4.5" fill="#3b82f6"/>
+                        <!-- Jung-gu -->
+                        <circle cx="200" cy="105" r="4.5" fill="#3b82f6"/>
+                        <text x="180" y="98" font-size="7.5" fill="#cbd5e1">중구</text>
+
+                        <!-- Dobong & Seongbuk -->
+                        <circle cx="180" cy="140" r="4.5" fill="#3b82f6"/>
+                        <circle cx="210" cy="125" r="4.5" fill="#3b82f6"/>
+
+                        <!-- Outlier: Jungnang (0 streetlights record) -->
+                        <circle cx="45" cy="90" r="5.5" fill="#f43f5e" stroke="#fff" stroke-width="1.5"/>
+                        <text x="55" y="94" font-size="8" font-weight="bold" fill="#fb7185">중랑구 (0건 이상치)</text>
+                    </svg>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-sub border-t border-slate-700/60 pt-2" style="font-size: 0.7rem; border-top: 1px solid var(--card-border);">
+                    <span>분석 표본: 서울시 25개 자치구 전체</span>
+                    <span class="text-mint font-bold">인구 보정 후 통계적 착시 제거 완료</span>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>보안 인프라 상관성 분석</span></div>
+                <span class="text-xs text-sub">Statistical Verification of Infrastructure & Crime</span>
+            </div>
+            <div class="footer-system-note">
+                <span>06 / 10</span>
+                <span>•</span>
+                <span>Correlation Analysis</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>

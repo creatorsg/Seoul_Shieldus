@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>08. 안전지도 서비스 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • SERVICE ARCHITECTURE</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-mint">08. SERVICE ARCHITECTURE</span>
+                    <span class="text-xs text-sub">분석 결과의 실시간 웹 서비스 구현 아키텍처</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">서울-쉴더스 안전지도 및 인터랙티브 대시보드 시스템</h1>
+                        <p class="sub-title">Streamlit 멀티페이지 앱 구조 & Plotly 시각화 엔진 & 실시간 필터링</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Interactive Dashboard</span></div>
+                <span class="slide-counter">SLIDE 08 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1fr 1.25fr; gap: 1.4rem;">
+            
+            <!-- Left: 4 Multi-Page Architecture -->
+            <div class="flex flex-col justify-between" style="gap: 8px;">
+                <div class="space-y-1.5">
+                    <div class="security-card" style="padding: 8px 11px;">
+                        <span class="font-bold text-primary text-xs">📊 Page 1. Overview (종합 현황)</span>
+                        <p class="text-xs text-sub" style="font-size: 0.68rem; margin-top: 2px;">서울시 전체 범죄 KPI, 자치구별 발생건수 랭킹 및 범죄 유형 도넛 차트</p>
+                    </div>
+
+                    <div class="security-card" style="padding: 8px 11px;">
+                        <span class="font-bold text-mint text-xs">📈 Page 2. Crime (범죄 통계 분석)</span>
+                        <p class="text-xs text-sub" style="font-size: 0.68rem; margin-top: 2px;">5대 범죄 세부 통계, 인구 1만 명당 발생률 및 자치구별 비교 테이블</p>
+                    </div>
+
+                    <div class="security-card" style="padding: 8px 11px;">
+                        <span class="font-bold text-amber text-xs">💡 Page 3. Streetlights (인프라 공간 분석)</span>
+                        <p class="text-xs text-sub" style="font-size: 0.68rem; margin-top: 2px;">가로등·CCTV 좌표 레코드와 자치구 경계의 공간 결합 분석</p>
+                    </div>
+
+                    <div class="security-card" style="padding: 8px 11px;">
+                        <span class="font-bold text-cyan text-xs">🔎 Page 4. Risk Analysis (상관성 리포트)</span>
+                        <p class="text-xs text-sub" style="font-size: 0.68rem; margin-top: 2px;">인구 보정 산점도, Pearson/Spearman 상관분석 및 데이터 한계 안내</p>
+                    </div>
+                </div>
+
+                <div class="callout-banner" style="padding: 6px 10px; font-size: 0.72rem;">
+                    🚀 <strong>실행 명령어:</strong> <code class="font-mono text-cyan" style="margin-left: 4px;">uv run streamlit run app.py</code>
+                </div>
+            </div>
+
+            <!-- Right: Streamlit Dashboard UI Mockup Card -->
+            <div class="security-card flex flex-col justify-between" style="background: rgba(15,23,42,0.95); padding: 1.1rem;">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2" style="border-bottom: 1px solid var(--card-border);">
+                    <div class="flex items-center gap-2">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f43f5e;"></span>
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+                        <span class="font-mono text-xs text-muted" style="margin-left: 4px;">Seoul Security Insight Dashboard</span>
+                    </div>
+                    <span class="badge badge-mint" style="font-size: 0.6rem;">실제 배포 준비 완료</span>
+                </div>
+
+                <!-- KPI Tiles in Dashboard -->
+                <div class="grid grid-cols-3 gap-2" style="margin: 8px 0;">
+                    <div class="security-card" style="padding: 8px; text-align: center; background: rgba(30,41,59,0.7);">
+                        <div class="text-xs text-muted" style="font-size: 0.65rem;">2024 총 5대 범죄</div>
+                        <div class="text-base font-bold text-primary">80,819 <span class="text-xs text-muted font-normal">건</span></div>
+                    </div>
+                    <div class="security-card" style="padding: 8px; text-align: center; background: rgba(30,41,59,0.7);">
+                        <div class="text-xs text-muted" style="font-size: 0.65rem;">1만명당 범죄율</div>
+                        <div class="text-base font-bold text-mint">86.11 <span class="text-xs text-muted font-normal">건</span></div>
+                    </div>
+                    <div class="security-card" style="padding: 8px; text-align: center; background: rgba(30,41,59,0.7);">
+                        <div class="text-xs text-muted" style="font-size: 0.65rem;">관리 가로등 수</div>
+                        <div class="text-base font-bold text-amber">19,291 <span class="text-xs text-muted font-normal">개</span></div>
+                    </div>
+                </div>
+
+                <!-- Filter & Interactive Info -->
+                <div style="background: rgba(30,41,59,0.6); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border);">
+                    <div class="flex items-center justify-between text-xs font-bold text-heading">
+                        <span>[동적 인터랙션] 사이드바 자치구 필터링</span>
+                        <span class="text-cyan">Plotly 60fps</span>
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.68rem; line-height: 1.35; margin-top: 3px;">
+                        사이드바에서 자치구(25개 구)를 선택하면 KPI 카드와 그래프가 실시간 재연산되며, 호버 툴팁을 통해 각 동별 안전 인프라 지수를 즉시 조회할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>서비스 아키텍처 및 대시보드</span></div>
+                <span class="text-xs text-sub">Streamlit & Plotly Interactive Service Stack</span>
+            </div>
+            <div class="footer-system-note">
+                <span>08 / 10</span>
+                <span>•</span>
+                <span>Service Architecture</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>
