@@ -12,7 +12,8 @@
 - `constants.py` — 화면 여러 곳에서 재사용하는 데이터 형태 상수 모음.
 - `data_access.py` — 데이터 로딩 계층 (DB 우선 조회, JSON 폴백).
 - `colors.py` — 점수 → 색상 매핑 단일 소스.
-- `naver_map.py` — 네이버 지도 HTML 생성.
+- `naver_map.py` — 네이버 지도를 그리는 JS 코드 생성 (2026-08부터 static HTML 파일이 아니라
+  window.parent에 직접 심는 방식 - 모듈 docstring 참고).
 - `route_finder.py` — TMAP 경로 조회.
 
 ---
