@@ -25,10 +25,15 @@ sessions."). 실제로 겪은 증상이 정확히 이거였다: 네트워크 탭
     그래서 scripts/build_static_maps.py로 배포 전에 딱 한 번 구워서 저장소에 커밋해두고
     (FACILITY_PREBUILT_PATH), write_static_map()은 그 고정 파일을 그대로 가리키기만 한다.
 
-  - 길찾기 지도: 내 위치/목적지/경로는 매 요청 달라져서 미리 구울 수 없다. 그래서 HTML
-    파일 자체(templates/route_map.html, static/route_map.html에 그대로 커밋)는 고정해두고,
-    달라지는 데이터만 URL 해시(#...)에 실어 보낸다 - 해시는 브라우저가 서버로 아예 안 보내는
-    순수 클라이언트 값이라, 이 경로는 파일을 새로 쓸 필요 자체가 없다(render_route_map 참고).
+  - 길찾기 지도: 내 위치/목적지/경로는 매 요청 달라져서 미리 구울 수 없다. 처음엔 그 데이터를
+    URL 해시(#...)에 실어 보내는 방식으로 만들었었는데, 로컬에서 바로 "네이버 오픈API 인증
+    실패"로 막혔다 - 네이버 지도 SDK가 도메인 인증 시 location.href를 그대로 검사하는 것으로
+    보이는데, 마커/경로 데이터를 통째로 욱여넣은 해시가 너무 커서 등록된 서비스 URL과 매치가
+    안 된 것. 그래서 sessionStorage로 바꿨다: 지도 iframe이 부모 페이지와 같은 출처
+    (…streamlit.app 도메인 하나를 공유)라 sessionStorage를 그대로 공유할 수 있고, 이러면
+    URL은 항상 "/app/static/route_map.html" 그대로 깨끗하게 유지되어 인증에 영향을 안 준다
+    (app.py의 _send_route_payload 참고). ncpKeyId는 시설찾기와 마찬가지로 파일에 고정으로
+    구워 넣는다(client_id는 세션마다 안 바뀌는 값이라 매번 실어 보낼 이유가 없다).
 """
 
 import json
@@ -37,7 +42,6 @@ import os
 import tempfile
 from pathlib import Path
 from string import Template
-from urllib.parse import quote
 
 import pandas as pd
 
@@ -52,9 +56,9 @@ FACILITY_PREBUILT_FILENAME = "naver_map_prebuilt.html"
 FACILITY_PREBUILT_PATH = STATIC_DIR / FACILITY_PREBUILT_FILENAME
 
 ROUTE_TEMPLATE_PATH = TEMPLATE_DIR / "route_map.html"
-# 길찾기 지도는 이제 데이터를 안 굽는다 - 이 파일은 templates/route_map.html을 그대로 복사한
-# "껍데기"만 저장소에 커밋돼 있고(scripts/build_static_maps.py), 실제 데이터는 render_route_map()이
-# URL 해시로 매 요청 실어 보낸다.
+# 길찾기 지도는 마커/경로 같은 요청별 데이터는 안 굽지만, ncpKeyId(client_id)만은 시설찾기와
+# 똑같이 고정으로 구워서 저장소에 커밋해둔다(scripts/build_static_maps.py) - client_id는 세션마다
+# 안 바뀌는 값이고, 이렇게 해야 static/route_map.html의 URL이 항상 깨끗하게 유지된다.
 ROUTE_STATIC_FILENAME = "route_map.html"
 
 # 지도 위 종류별 색상(마커든 폴리라인이든). 여러 종류를 동시에 켜도 구분되도록 색을 다르게 준다.
@@ -224,26 +228,18 @@ def write_static_map(
     return _write_versioned_html(FACILITY_STATIC_STEM, html)
 
 
-def render_route_map(
-    client_id: str,
+def build_route_payload(
     police: pd.DataFrame,
     my_location: tuple,
     destination_name: str,
     route: list,
-) -> str:
+) -> dict:
     """
-    길찾기 지도 URL을 만든다. 지도 HTML 파일 자체(static/route_map.html)는 저장소에 고정으로
-    커밋돼 있고, 요청마다 달라지는 데이터(내 위치/목적지/경로/마커)는 파일을 새로 쓰지 않고
-    URL 해시(#...)에 실어 보낸다. TMAP 호출은 route_finder.py가 서버 쪽에서 이미 끝내고,
-    여기서는 좌표만 그린다.
-
-    해시는 브라우저가 서버로 아예 보내지 않는 순수 클라이언트 값이다. 이 방식이면 요청마다
-    파일을 쓸 필요 자체가 없어져서, Streamlit Cloud의 "런타임에 쓴 static 파일은 서빙 보장
-    안 됨" 제약을 애초에 만나지 않는다 - 예전에 이 경로에서 겪던 Windows 파일 잠금 문제도
-    같이 사라진다.
+    길찾기 지도가 그려야 할 요청별 데이터(마커/내 위치/목적지/경로)를 dict로 묶는다. client_id는
+    안 넣는다 - 파일에 이미 고정으로 구워져 있어서(ROUTE_TEMPLATE_PATH 참고) 매번 실어 보낼
+    필요가 없다. TMAP 호출은 route_finder.py가 서버 쪽에서 이미 끝내고, 여기서는 좌표만 그린다.
     """
-    payload = {
-        "client_id": client_id,
+    return {
         "type_styles": FACILITY_TYPE_STYLES,
         "markers_by_type": _markers_by_type(police),
         "destination_name": destination_name,
@@ -252,10 +248,12 @@ def render_route_map(
         ),
         "route": [{"lat": lat, "lng": lng} for lat, lng in (route or [])],
     }
-    # safe="" : 콤마/콜론/한글 등 JSON에 흔한 문자를 전부 이스케이프한다. quote()의 기본
-    # safe 값("/")을 그대로 두면 주소 문자열 속 "/"가 인코딩 안 돼 해시 파싱이 깨질 수 있다.
-    encoded = quote(json.dumps(payload, ensure_ascii=False), safe="")
-    return f"/app/static/{ROUTE_STATIC_FILENAME}#{encoded}"
+
+
+def route_map_url() -> str:
+    """길찾기 지도 iframe에 넘길 URL. 요청별 데이터가 전혀 안 붙는 고정 경로다 - 실제 데이터는
+    app.py의 _send_route_payload()가 sessionStorage로 별도 전달한다(모듈 docstring 참고)."""
+    return f"/app/static/{ROUTE_STATIC_FILENAME}"
 
 
 def write_route_map(
@@ -264,6 +262,11 @@ def write_route_map(
     my_location: tuple,
     destination_name: str,
     route: list,
-) -> str:
-    """app.py 호출부 이름을 그대로 유지하기 위한 얇은 별칭. render_route_map 참고."""
-    return render_route_map(client_id, police, my_location, destination_name, route)
+) -> tuple:
+    """
+    app.py 호출부 이름/시그니처를 유지하기 위한 얇은 래퍼. (map_url, payload) 튜플을 반환한다 -
+    map_url은 st.iframe에, payload는 _send_route_payload()로 sessionStorage에 넘기면 된다.
+    client_id는 안 쓴다(위 build_route_payload 참고) - 시그니처만 write_static_map과 맞춰뒀다.
+    """
+    payload = build_route_payload(police, my_location, destination_name, route)
+    return route_map_url(), payload
