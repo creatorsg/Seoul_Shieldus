@@ -1,0 +1,311 @@
+/**
+ * 서울-쉴더스 (Seoul-Shielders) Presentation Design System
+ * presentation.css - 프레젠테이션 컨트롤, 툴바, 썸네일 드로어, 애니메이션, 단축키
+ */
+
+/* ==========================================================================
+   1. TOP PRESENTER UTILITY TOOLBAR
+   ========================================================================== */
+.stage-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(96vw, 170.66vh);
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    z-index: 100;
+}
+
+.stage-toolbar .badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+.stage-toolbar .live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-mint);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-mint);
+    animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.toolbar-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-toolbar {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+    padding: 4px 11px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    user-select: none;
+}
+
+.btn-toolbar:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-color: var(--color-primary-light);
+}
+
+.btn-toolbar:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================================================
+   2. FLOATING BOTTOM NAVIGATION DOCK (Auto-hide on idle)
+   ========================================================================== */
+.presentation-dock {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    opacity: 0.85;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.presentation-dock:hover {
+    opacity: 1;
+}
+
+.dock-btn {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: var(--transition-fast);
+}
+
+.dock-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.dock-page-indicator {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   3. SLIDE TRANSITION ANIMATION
+   ========================================================================== */
+.slide-canvas {
+    animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideFadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.985) translateY(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ==========================================================================
+   4. THUMBNAIL DRAWER MODAL OVERVIEW
+   ========================================================================== */
+.drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(6, 9, 19, 0.85);
+    backdrop-filter: blur(16px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.drawer-backdrop.active {
+    display: flex;
+    opacity: 1;
+}
+
+.drawer-content {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-xl);
+    width: min(92vw, 1200px);
+    max-height: 85vh;
+    padding: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.2rem;
+}
+
+.drawer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.thumbnail-card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.thumbnail-card:hover {
+    border-color: var(--color-primary-light);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+}
+
+.thumbnail-card.active {
+    border-color: var(--color-mint-light);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.thumbnail-num {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--color-primary-light);
+    font-family: var(--font-mono);
+}
+
+.thumbnail-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.thumbnail-desc {
+    font-size: 0.68rem;
+    color: var(--text-sub);
+}
+
+/* ==========================================================================
+   5. KEYBOARD SHORTCUTS MODAL
+   ========================================================================== */
+.shortcuts-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 2rem;
+    width: min(90vw, 480px);
+    z-index: 300;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    display: none;
+}
+
+.shortcuts-modal.active {
+    display: block;
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.8rem;
+}
+
+.kbd {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #ffffff;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   6. PRINT & PDF STYLES
+   ========================================================================== */
+@media print {
+    body {
+        background: #0f172a !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .stage-toolbar, .presentation-dock, .drawer-backdrop, .shortcuts-modal {
+        display: none !important;
+    }
+    .slide-canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+    }
+}
