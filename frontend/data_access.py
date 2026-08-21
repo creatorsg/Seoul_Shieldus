@@ -28,6 +28,7 @@ get_cctv_stats()가 반환하는 df 컬럼 고정:
 
 import json
 import random
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -101,6 +102,94 @@ CCTV_STATS_COLUMNS = [
     "방범용", "어린이보호용", "공원놀이터용", "무단투기단속용",
     "화재감시용", "교통단속용", "교통정보용", "기타용",
 ]
+
+# --- backend DB(백엔드 팀 SQLAlchemy 파이프라인) 조회용 컬럼 매핑 -------------------------
+# backend/models.py의 ORM 컬럼명 -> 이 모듈의 화면 표시용 한글 컬럼명. JSON 쪽
+# SAFETY_INDEX_RENAME/JIGUDAE_RENAME과는 원본 키 이름 체계가 달라서(예: JSON 영문 스키마는
+# "safepath_score", DB 컬럼은 "safe_road_score") 별도로 둔다.
+SAFETY_INDEX_DB_RENAME = {
+    "district": "구",
+    "safety_index": "안심지수",
+    "cctv_score": "CCTV_점수",
+    "safe_road_score": "귀갓길_점수",
+    "police_score": "파출소_접근성",
+    "street_light_score": "가로등_점수",
+    "crime_safety_score": "범죄안전_점수",
+    "crime_rate_per_pop": CRIME_RATE_COLUMN,
+}
+CCTV_STATS_DB_RENAME = {
+    "district": "구",
+    "total_cctv": "총_CCTV",
+    "crime_prevention_total": "방범_합계",
+    "purpose_crime": "방범용",
+    "purpose_child_protection": "어린이보호용",
+    "purpose_park_playground": "공원놀이터용",
+    "purpose_illegal_dumping": "무단투기단속용",
+    "purpose_fire_safety": "화재감시용",
+    "purpose_traffic_crackdown": "교통단속용",
+    "purpose_traffic_info": "교통정보용",
+    "purpose_others": "기타용",
+}
+# PoliceStation/StreetLight 테이블은 컬럼명이 JIGUDAE_RENAME/STREET_LIGHT_RENAME과
+# 이미 같은 영문 이름 체계(station_name/lat/lng/type/district/address, management_id)라
+# 그대로 재사용한다.
+
+# backend/ 아래 SQLAlchemy 파이프라인을 import할 수 있으면 DB에서 읽고, 그게 안 되면(예:
+# sqlalchemy 미설치, backend 폴더 없음) 아래 각 get_* 함수가 기존처럼 JSON 파일로 대체한다.
+# _resolve_data_path()의 mtime 캐싱과 별개로, DB 연결/시딩 자체는 앱 프로세스당 한 번만
+# 시도한다 - 매 리런마다 재시도하면 실패 케이스에서 느려지기만 하고 얻는 게 없다.
+_BACKEND_DIR = BASE_DIR / "backend"
+_db_engine = None
+_db_init = None
+if _BACKEND_DIR.is_dir():
+    if str(_BACKEND_DIR) not in sys.path:
+        sys.path.insert(0, str(_BACKEND_DIR))
+    try:
+        import database as _db_database  # backend/database.py
+        import init_db as _db_init  # backend/init_db.py
+
+        _db_engine = _db_database.engine
+    except Exception:
+        # sqlalchemy가 없거나 backend 쪽 코드에 문제가 있어도 앱 자체는 JSON 폴백으로
+        # 계속 돌아가야 하므로, 여기서 죽이지 않고 조용히 DB 비활성 상태로 남겨둔다.
+        _db_engine = None
+        _db_init = None
+
+_db_seed_attempted = False
+_db_seed_ok = False
+
+
+def _ensure_db_ready() -> bool:
+    """DB가 준비돼 있으면 True. 처음 호출될 때만 실제로 시딩을 시도하고, 그 뒤로는
+    성공/실패 결과를 그대로 재사용한다(매번 재시도하지 않음)."""
+    global _db_seed_attempted, _db_seed_ok
+    if _db_engine is None or _db_init is None:
+        return False
+    if _db_seed_attempted:
+        return _db_seed_ok
+    _db_seed_attempted = True
+    try:
+        _db_init.initialize_database()
+        _db_seed_ok = True
+    except Exception as e:
+        st.warning(f"백엔드 DB 초기화에 실패해 JSON 파일로 대체합니다: {e}")
+        _db_seed_ok = False
+    return _db_seed_ok
+
+
+def _read_db_table(table_name: str, rename: dict, columns: list) -> Optional[pd.DataFrame]:
+    """DB 테이블 하나를 읽어 화면 표시용 컬럼으로 정리한다. DB가 준비 안 됐거나 테이블이
+    비어있거나 조회 자체가 실패하면 None을 반환해서 호출부가 JSON 폴백으로 넘어가게 한다."""
+    if not _ensure_db_ready():
+        return None
+    try:
+        df = pd.read_sql_table(table_name, _db_engine)
+    except Exception as e:
+        st.warning(f"DB 테이블 '{table_name}' 조회 실패, JSON 파일로 대체합니다: {e}")
+        return None
+    if df.empty:
+        return None
+    return df.rename(columns=rename)[columns]
 
 
 def _resolve_data_path(file_name: str) -> Optional[Path]:
@@ -185,12 +274,24 @@ def _dummy_district_scores(districts: list) -> pd.DataFrame:
 def get_district_scores(geo: dict) -> pd.DataFrame:
     """
     자치구별 안심 지수를 반환한다.
-    SAFETY_INDEX_FILE이 있으면 그걸 읽고, 없으면 랜덤 더미로 대체한다.
+    1) backend DB(seoul_safety_index 테이블)가 준비돼 있으면 그걸 우선 읽는다.
+    2) DB가 없거나 조회에 실패하면 SAFETY_INDEX_FILE(JSON)로 대체한다.
+    3) 그것도 없으면 랜덤 더미로 대체한다.
     (파일 읽기 자체의 캐싱은 _try_load_json -> _load_json_cached가 mtime 기준으로 담당하므로,
     여기엔 @st.cache_data를 안 붙인다. geo만 인자로 캐싱하면 파일이 바뀌어도 예전 결과가
     계속 캐시에 남는 문제가 있었다.)
     """
     districts = _district_names(geo)
+
+    db_df = _read_db_table(
+        "seoul_safety_index", SAFETY_INDEX_DB_RENAME, SAFETY_INDEX_COLUMNS + [CRIME_RATE_COLUMN]
+    )
+    if db_df is not None:
+        missing = set(districts) - set(db_df["구"])
+        if missing:
+            st.warning(f"DB(seoul_safety_index)에 없는 구: {missing}")
+        return db_df
+
     raw = _try_load_json(SAFETY_INDEX_FILE)
     if raw is None:
         return _dummy_district_scores(districts)
@@ -273,10 +374,15 @@ def _dummy_facility_markers(geo: dict) -> pd.DataFrame:
 def get_facility_markers(geo: dict) -> pd.DataFrame:
     """
     지도에 마커로 찍을 지구대/파출소 위치를 반환한다. "종류" 컬럼에 지구대/파출소가 섞여 있다.
-    JIGUDAE_FILE(지구대/파출소 실제 좌표)이 있으면 그걸 읽고,
-    없으면 각 자치구 geojson 경계의 중심점을 더미 위치로 대체한다.
+    1) backend DB(police_stations 테이블)가 준비돼 있으면 그걸 우선 읽는다.
+    2) 없으면 JIGUDAE_FILE(JSON)을 읽는다.
+    3) 그것도 없으면 각 자치구 geojson 경계의 중심점을 더미 위치로 대체한다.
     (get_district_scores와 같은 이유로 @st.cache_data를 여기 대신 _load_json_cached에 둔다.)
     """
+    db_df = _read_db_table("police_stations", JIGUDAE_RENAME, JIGUDAE_COLUMNS)
+    if db_df is not None:
+        return db_df
+
     raw = _try_load_json(JIGUDAE_FILE)
     if raw is None:
         return _dummy_facility_markers(geo)
@@ -287,11 +393,17 @@ def get_facility_markers(geo: dict) -> pd.DataFrame:
 def get_street_light_markers() -> pd.DataFrame:
     """
     가로등 위치를 반환한다. 19,000여 개로 개수가 많아 지도에는 클러스터링해서 그려야 한다.
-    STREET_LIGHT_FILE이 없으면 빈 DataFrame을 반환한다 (더미로 채우기엔 개수가 의미 없이 많음).
+    1) backend DB(street_lights 테이블)가 준비돼 있으면 그걸 우선 읽는다.
+    2) 없으면 STREET_LIGHT_FILE(JSON)을 읽는다.
+    3) 그것도 없으면 빈 DataFrame을 반환한다 (더미로 채우기엔 개수가 의미 없이 많음).
     (인자가 아예 없는 함수라 @st.cache_data를 직접 붙이면 서버가 켜져 있는 동안은 파일을
     통째로 갈아끼워도 절대 다시 안 읽는, 가장 심한 형태의 캐시 문제가 생긴다. 여기도
     _load_json_cached 쪽 mtime 캐싱에 맡긴다.)
     """
+    db_df = _read_db_table("street_lights", STREET_LIGHT_RENAME, STREET_LIGHT_COLUMNS)
+    if db_df is not None:
+        return db_df
+
     raw = _try_load_json(STREET_LIGHT_FILE)
     if raw is None:
         return pd.DataFrame(columns=STREET_LIGHT_COLUMNS)
@@ -303,9 +415,15 @@ def get_cctv_stats() -> pd.DataFrame:
     """
     자치구별 CCTV 설치 현황(총량 + 목적별 세부)을 반환한다. 위치 정보가 없는(자치구 단위 집계)
     통계 데이터라 지도 마커가 아니라 자치구 상세 패널의 표/차트용이다.
-    CCTV_STATS_FILE이 없으면 빈 DataFrame을 반환한다 (목적별 세부까지 의미 있게 흉내낸
-    더미를 만들기는 애매해서 더미 대체는 하지 않는다).
+    1) backend DB(district_cctv_stats 테이블)가 준비돼 있으면 그걸 우선 읽는다.
+    2) 없으면 CCTV_STATS_FILE(JSON)을 읽는다.
+    3) 그것도 없으면 빈 DataFrame을 반환한다 (목적별 세부까지 의미 있게 흉내낸 더미를
+    만들기는 애매해서 더미 대체는 하지 않는다).
     """
+    db_df = _read_db_table("district_cctv_stats", CCTV_STATS_DB_RENAME, CCTV_STATS_COLUMNS)
+    if db_df is not None:
+        return db_df
+
     raw = _try_load_json(CCTV_STATS_FILE)
     if raw is None:
         return pd.DataFrame(columns=CCTV_STATS_COLUMNS)
@@ -342,6 +460,13 @@ def get_safe_paths() -> list:
 
     STREET_LIGHT_FILE처럼 위치 데이터가 아예 없던 시절엔 이 함수가 없었다 - 안심귀갓길에
     좌표가 추가되면서 새로 생긴 함수다. 파일이 없으면(아직 안 받았으면) 빈 리스트를 반환한다.
+
+    ⚠ 다른 get_*와 달리 이 함수는 DB를 안 거치고 항상 JSON만 읽는다. backend/models.py의
+    SafeRoute 테이블에는 노선 요약(노선수/총길이/방범시설 개수)만 있고 좌표(coordinates)
+    자체를 저장하는 컬럼이 없어서, 지도에 그릴 폴리라인을 DB만으로는 복원할 수 없다.
+    지도에 표시하는 기능을 유지하려면 당장은 이 경로만 JSON을 계속 쓰는 게 맞고, DB로
+    완전히 옮기려면 backend 팀이 SafeRoute에 좌표 컬럼(예: coordinates JSON/TEXT)을
+    추가해야 한다.
     """
     raw = _try_load_json(SAFE_PATH_FILE)
     if raw is None:
