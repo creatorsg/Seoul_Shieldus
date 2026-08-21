@@ -91,6 +91,19 @@ SIDEBAR_CSS = """
     flex: none !important;
     min-height: 0 !important;
     height: 0 !important;
+    overflow: visible !important;
+}
+/* 로고를 화면 크기와 무관하게 항상 사이드바 좌측 하단에 고정한다(main()의 st.sidebar 블록
+   참고). position:absolute의 기준(containing block)이 되도록 사이드바 자체에
+   position:relative를 준다. */
+[data-testid="stSidebar"] {
+    position: relative !important;
+}
+div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] .sidebar-logo-marker) {
+    position: absolute !important;
+    left: 16px;
+    bottom: 16px;
+    width: auto !important;
 }
 </style>
 """
@@ -125,7 +138,8 @@ HIDE_STREAMLIT_CHROME_CSS = """
 footer { visibility: hidden; }
 div[data-testid="stDecoration"] { display: none; }
 [class*="st-key-head_scripts_inject"],
-[class*="st-key-scroll_restore_"] {
+[class*="st-key-scroll_restore_"],
+[class*="st-key-score_bar_replay_"] {
     height: 0 !important;
     min-height: 0 !important;
     margin: 0 !important;
@@ -242,6 +256,23 @@ def _warn_missing_env(var_name: str) -> None:
     )
 
 
+# 점수 막대가 0%에서 실제 값까지 좌→우로 차오르는 애니메이션. 목표 너비(%)는 자치구마다
+# 달라서 공유 스타일시트에 고정값으로 못 박을 수 없다 - CSS 커스텀 프로퍼티(--fill-width)를
+# 막대마다 인라인으로 넘기고, keyframe의 도착 지점(to)에서 그 변수를 읽게 한다. 색은 그대로
+# score_to_color 값을 쓰고(요청사항 - 색 기준 변경 없음), 채워지는 움직임만 추가한 것이다.
+SCORE_BAR_CSS = """
+<style>
+@keyframes scoreBarFill {
+    from { width: 0%; }
+    to { width: var(--fill-width); }
+}
+.score-bar-fill {
+    animation: scoreBarFill 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+</style>
+"""
+
+
 def _render_score_bar(label: str, score: float) -> None:
     """
     점수만큼 채워지는 막대를 그린다. st.progress는 막대 색이 테마 색 하나로 고정이라
@@ -254,11 +285,47 @@ def _render_score_bar(label: str, score: float) -> None:
         <div style="margin-bottom:10px;">
           <div style="font-size:13px;margin-bottom:3px;">{label} {score:.1f}</div>
           <div style="background:#E0E0E0;border-radius:4px;height:8px;">
-            <div style="width:{width}%;background:{color};height:8px;border-radius:4px;"></div>
+            <div class="score-bar-fill" style="--fill-width:{width}%;width:{width}%;
+                background:{color};height:8px;border-radius:4px;"></div>
           </div>
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+
+def _replay_score_bar_animations() -> None:
+    """
+    .score-bar-fill의 채우기 애니메이션을 매 리런마다 강제로 다시 재생시킨다.
+
+    처음 자치구를 고를 때만 애니메이션이 재생되고 그다음부터 안 재생되는 문제가 있었다 - 원인은
+    Streamlit이 같은 st.markdown() 호출 "자리"에 대해 매번 새 DOM 노드를 만드는 게 아니라
+    기존 노드를 재사용하면서 style만 고쳐 쓴다는 점이다(내용 문자열이 달라져도 노드 자체는
+    그대로). CSS 애니메이션은 노드가 처음 생성될 때만 자동 재생되는 특성이 있어서, 재사용된
+    노드는 style이 바뀌어도 애니메이션이 다시 돌지 않는다.
+
+    표준 트릭(animation을 none으로 껐다가 강제로 reflow를 한 번 읽은 뒤 다시 켜기)으로 매번
+    강제 재시작시킨다. _restore_scroll_position()과 같은 이유로 key를 세션 카운터로 계속
+    바꿔서 매 리런마다 이 streamlit_js_eval 자체가 실행되게 한다(직전과 완전히 같은 JS
+    문자열이면 재실행을 건너뛰는 특성이 있어서) - want_output=False라 리턴값이 없으니
+    _restore_scroll_position에서 겪었던 무한 리런 위험은 없다.
+    """
+    st.session_state["_score_bar_tick"] = st.session_state.get("_score_bar_tick", 0) + 1
+    js = """
+    (function() {
+        var d = window.parent.document;
+        d.querySelectorAll('.score-bar-fill').forEach(function (el) {
+            el.style.animation = 'none';
+            void el.offsetHeight;
+            el.style.animation = '';
+        });
+        return true;
+    })()
+    """
+    streamlit_js_eval(
+        js_expressions=js,
+        key=f"score_bar_replay_{st.session_state['_score_bar_tick']}",
+        want_output=False,
     )
 
 
@@ -312,6 +379,7 @@ def render_district_detail(row, df, cctv_stats) -> None:
     """선택된 자치구 하나의 안심지수/세부 점수 + CCTV 목적별 통계를 그린다."""
     st.markdown(DISTRICT_DETAIL_CSS, unsafe_allow_html=True)
     st.markdown(GLASS_CARD_CSS, unsafe_allow_html=True)
+    st.markdown(SCORE_BAR_CSS, unsafe_allow_html=True)
     st.markdown(f"#### {row['구']} 상세")
     seoul_avg = round(df["안심지수"].mean(), 1)
     diff = row["안심지수"] - seoul_avg
@@ -324,6 +392,7 @@ def render_district_detail(row, df, cctv_stats) -> None:
         )
         for label, col in DETAIL_SCORE_FIELDS:
             _render_score_bar(label, row[col])
+    _replay_score_bar_animations()
 
     if cctv_stats.empty:
         return
@@ -622,13 +691,12 @@ div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] [
 def render_home_page(page_heatmap, page_facility, page_route) -> None:
     """랜딩 페이지: 서비스 소개 + 3개 핵심 기능으로 바로 진입하는 카드."""
     st.markdown(HOME_CARD_CSS, unsafe_allow_html=True)
+    # 페이지 상단 st.title("서울 쉴더스 : ...")은 모든 페이지에 공통이라 여기서 위치를 바꿀 수
+    # 없다 - 대신 이 페이지 콘텐츠(사진 이하)를 아래로 밀어서 제목과의 간격을 벌린다.
+    st.markdown("<div style='margin-top:48px;'></div>", unsafe_allow_html=True)
     # 공간이 넉넉한 홈 히어로에는 원본 크레스트(텍스트 배너 포함)를 그대로 쓴다 - 사이드바 아이콘과
     # 달리 여기선 디테일이 뭉개질 걱정이 없다. st.image는 기본 좌측 정렬이라, 좌우로 빈 컬럼을
     # 두는 3분할(5:2:5) 레이아웃으로 가운데 컬럼에만 넣어서 중앙 정렬한다.
-
-    
-  
-    
     # 2. 추가할 이미지 (가운데 정렬)
     # [1, 2, 1] 비율을 [1, 1, 1]이나 [1, 3, 1] 등으로 바꿔서 사진 크기를 조절할 수 있습니다.
     img_l, img_c, img_r = st.columns([1, 12, 1])
@@ -639,7 +707,7 @@ def render_home_page(page_heatmap, page_facility, page_route) -> None:
     st.markdown(
         """
         <div style="text-align:center;padding:16px 24px 32px;">
-          <h1 style="font-size:32px;font-weight:600;line-height:1.35;margin:0 0 16px;">
+          <h1 style="font-size:40px;font-weight:600;line-height:1.35;margin:0 0 16px;">
             늦은 밤 골목길, 혼자 걸어도 안전할까요?
           </h1>
           <p style="font-size:16px;line-height:1.7;color:#5B7A99;margin:0 auto;max-width:520px;">
@@ -654,15 +722,43 @@ def render_home_page(page_heatmap, page_facility, page_route) -> None:
 
     # accent: 사이드바 아이콘/카드 호버 테두리와 같은 색 기준 - 안심지수 히트맵은 브랜드 그린,
     # 시설 찾기/길찾기는 지도 마커 색상(naver_map.py의 FACILITY_TYPE_STYLES, 목적지 강조색)과 맞춘다.
+    #
+    # 이모지(🛡️📍🧭) 대신 인라인 SVG 아웃라인 아이콘을 쓴다 - 이모지는 OS/브라우저마다 모양이
+    # 달라지고 만화 같은 느낌이 나서, 사이드바 내비게이션과 같은 계열(Material Symbols 아웃라인
+    # 톤)의 SVG로 바꿔 더 "제품다운" 느낌을 준다. stroke 색을 accent로 지정해서 배지 배경(같은
+    # accent의 10% 불투명도)과 세트로 보이게 한다.
+    icon_shield = (
+        '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" '
+        'stroke="{c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M12 2.5L4.5 5.5v5.5c0 5.2 3.3 9.6 7.5 10.8c4.2-1.2 7.5-5.6 7.5-10.8V5.5z"/>'
+        '<path d="M8.7 12.2l2.3 2.3l4.3-4.6"/>'
+        "</svg>"
+    )
+    icon_pin = (
+        '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" '
+        'stroke="{c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M12 21.5C12 21.5 5.5 14.7 5.5 9.3C5.5 5.7 8.4 2.8 12 2.8s6.5 2.9 6.5 6.5'
+        'C18.5 14.7 12 21.5 12 21.5z"/>'
+        '<circle cx="12" cy="9.3" r="2.4"/>'
+        "</svg>"
+    )
+    icon_compass = (
+        '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" '
+        'stroke="{c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+        '<circle cx="12" cy="12" r="9.2"/>'
+        '<path d="M15.3 8.7l-2 4.6l-4.6 2l2-4.6z" fill="{c}" stroke-width="0.6"/>'
+        "</svg>"
+    )
     cards = [
-        (page_heatmap, "🛡️", "#2E7D32", "안심지수 히트맵", "자치구별 안심지수를 지도와 랭킹으로 비교해보세요."),
-        (page_facility, "📍", "#D81B60", "시설 찾기", "가까운 지구대·파출소·가로등을 지도에서 확인하세요."),
-        (page_route, "🧭", "#1565C0", "길찾기", "가장 가까운 치안시설까지 경로를 안내합니다."),
+        (page_heatmap, icon_shield, "#2E7D32", "안심지수 히트맵", "자치구별 안심지수를 지도와 랭킹으로 비교해보세요."),
+        (page_facility, icon_pin, "#D81B60", "시설 찾기", "가까운 지구대·파출소·가로등을 지도에서 확인하세요."),
+        (page_route, icon_compass, "#1565C0", "길찾기", "가장 가까운 치안시설까지 경로를 안내합니다."),
     ]
-    for col, (page, icon, accent, title, desc) in zip(st.columns(3), cards):
+    for col, (page, icon_svg, accent, title, desc) in zip(st.columns(3), cards):
         with col, st.container(border=True):
             st.markdown(
-                f"<div class='home-card-icon-badge' style='background:{accent}1A;'>{icon}</div>",
+                f"<div class='home-card-icon-badge' style='background:{accent}1A;'>"
+                f"{icon_svg.format(c=accent)}</div>",
                 unsafe_allow_html=True,
             )
             st.markdown(f"**{title}**")
@@ -881,13 +977,12 @@ def main() -> None:
     current_page = st.navigation(pages)
 
     with st.sidebar:
-        # 내비게이션 메뉴(글씨)들과 로고 사이에 적당한 여백을 줍니다. 
-        # 더 아래로 내리고 싶다면 <br> 개수를 늘리시면 됩니다.
-        st.markdown("<br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
-        
-        # 현재 크기(비율) 그대로 사이드바 가로 길이에 꽉 차게 들어갑니다.
-        # 만약 방패 모양 엠블럼만 넣고 싶으시면 "logo.png" 대신 "logo_icon.png"로 변경하세요.
-        st.image("logo.png", width=96)
+        # <br> 여러 개로 로고를 아래로 밀어내던 방식은 화면(사이드바) 높이에 따라 "얼마나
+        # 내려가는지"가 달라져서, 화면이 큰 모니터에서는 로고가 하단에 못 닿고 중간에 떠 있었다.
+        # 대신 이 블록(마커+로고)을 position:absolute로 사이드바 좌측 하단에 고정한다 -
+        # 화면 크기와 무관하게 항상 정확히 같은 자리(16px, 16px)에 붙는다.
+        st.markdown("<span class='sidebar-logo-marker'></span>", unsafe_allow_html=True)
+        st.image("logo.png", width=67)
 
     current_page.run()
     # 기본(첫 번째) 페이지가 이제 홈이라, url_path가 빈 문자열로 나올 때 대체값도 "home"으로 맞춘다
