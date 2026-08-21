@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+
+<style>
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    overflow: hidden;
+}
+
+#slide {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+button {
+    position: fixed;
+    top: 0;
+    width: 100px;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 60px;
+    opacity: 0.2;
+    z-index: 10;
+}
+
+#prev {
+    left: 0;
+}
+
+#next {
+    right: 0;
+}
+</style>
+</head>
+
+<body tabindex="0">
+
+<object id="slide"
+        data="slide-001.svg"
+        type="image/svg+xml">
+</object>
+
+<button id="prev">‹</button>
+<button id="next">›</button>
+
+<script>
+let n = 1;
+const total = 15;
+
+function showSlide() {
+    document.getElementById("slide").data =
+        "slide-" + String(n).padStart(3, "0") + ".svg";
+}
+
+document.getElementById("next").onclick = function() {
+    if (n < total) {
+        n++;
+        showSlide();
+    }
+};
+
+document.getElementById("prev").onclick = function() {
+    if (n > 1) {
+        n--;
+        showSlide();
+    }
+};
+
+document.addEventListener("keydown", function(e) {
+
+    if (e.key === "ArrowRight") {
+        if (n < total) {
+            n++;
+            showSlide();
+        }
+    }
+
+    if (e.key === "ArrowLeft") {
+        if (n > 1) {
+            n--;
+            showSlide();
+        }
+    }
+});
+
+document.body.focus();
+</script>
+
+</body>
+</html>
