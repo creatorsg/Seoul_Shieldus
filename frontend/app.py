@@ -10,6 +10,7 @@
 """
 
 import copy
+import json
 import os
 
 import folium
@@ -269,6 +270,37 @@ def render_facility_page(facilities, df) -> None:
     st.dataframe(_facility_display_table(facilities, df), width="stretch", hide_index=True)
 
 
+def _send_route_payload(payload: dict) -> None:
+    """
+    길찾기 지도(static/route_map.html)에 요청별 데이터(마커/내 위치/목적지/경로)를 넘긴다.
+
+    처음엔 write_route_map()이 만든 URL 해시(#...)로 데이터를 실어 보냈는데, 로컬에서 바로
+    "네이버 오픈API 인증 실패"로 막혔다 - 네이버 지도 SDK가 도메인 인증 시 location.href를
+    그대로 검사하는 것으로 보이는데, 마커/경로 데이터를 통째로 욱여넣은 해시 때문에
+    location.href가 너무 커져서 등록된 서비스 URL과 매치가 안 된 것으로 보였다.
+
+    대신 sessionStorage를 쓴다. 지도 iframe이 이 페이지와 같은 출처(...streamlit.app 도메인)라
+    sessionStorage를 그대로 공유하기 때문에, URL은 항상 static/route_map.html 그대로 깨끗하게
+    유지되면서도 데이터는 전달할 수 있다. iframe이 이 값을 읽는 타이밍과 안 맞을 수도 있어서
+    (부모가 세팅하기 전에 iframe이 먼저 읽어버리는 경우), templates/route_map.html 쪽에서
+    짧게 재시도하도록 해뒀다.
+    """
+    js = f"""
+    (function() {{
+        window.parent.sessionStorage.setItem(
+            'shieldus_route_payload', {json.dumps(json.dumps(payload, ensure_ascii=False))}
+        );
+        return true;
+    }})()
+    """
+    st.session_state["_route_payload_tick"] = st.session_state.get("_route_payload_tick", 0) + 1
+    streamlit_js_eval(
+        js_expressions=js,
+        key=f"route_payload_{st.session_state['_route_payload_tick']}",
+        want_output=False,
+    )
+
+
 def render_route_page(facilities) -> None:
     """길찾기 페이지: 내 위치 → 가장 가까운(또는 직접 고른) 지구대/파출소까지 도보/자동차 경로."""
     st.header("길찾기")
@@ -306,13 +338,14 @@ def render_route_page(facilities) -> None:
             mode=ROUTE_MODES[mode_label],
         )
 
-    map_url = write_route_map(
+    map_url, route_payload = write_route_map(
         NAVER_MAPS_CLIENT_ID,
         facilities,
         (my_lat, my_lng),
         selected_name,
         route_info["coords"] if route_info else None,
     )
+    _send_route_payload(route_payload)
     st.iframe(map_url, height=560)
     st.caption("지도 위 지구대/파출소 마커를 클릭(모바일은 터치)하면 주소가 복사됩니다.")
 
