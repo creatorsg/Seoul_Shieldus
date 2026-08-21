@@ -15,9 +15,14 @@ Streamlit 자체 앱 셸이 응답으로 와서 지도가 영원히 로딩 스�
   - frontend/static/naver_map_prebuilt.html : 시설찾기 지도. 지구대/파출소/가로등/안심귀갓길
     데이터를 그대로 구워 넣는다. 이 데이터는 사용자 입력과 무관하게 항상 같으므로 배포 전에
     한 번만 만들면 된다.
-  - frontend/static/route_map.html : 길찾기 지도. 요청마다 데이터(내 위치/목적지/경로)가
-    달라서 구워 넣을 수 없다 - templates/route_map.html을 그대로 복사만 한다. 실제 데이터는
-    naver_map.py의 render_route_map()이 매 요청 URL 해시(#...)에 실어 보낸다.
+  - frontend/static/route_map.html : 길찾기 지도. 마커/내 위치/목적지/경로 같은 요청별
+    데이터는 구워 넣지 않는다(sessionStorage로 매 요청 따로 전달 - naver_map.py의
+    build_route_payload/route_map_url, app.py의 _send_route_payload 참고) - 대신
+    ncpKeyId(client_id)만 templates/route_map.html의 ${client_id} 자리에 채워 넣는다. 이건
+    세션마다 안 바뀌는 값이라 파일에 고정으로 구워도 된다.
+    (처음엔 요청별 데이터까지 전부 URL 해시(#...)로 실어 보내려 했는데, 로컬에서 바로 "네이버
+    오픈API 인증 실패"가 났다 - 데이터를 통째로 욱여넣은 해시 때문에 location.href가 너무
+    커져서 네이버 쪽 도메인 인증이 깨진 것으로 보였다. sessionStorage 방식이 그 문제를 피한다.)
 
 사용법 (프로젝트 루트에서, 최초 1회 + 데이터가 바뀔 때마다):
     python scripts/build_static_maps.py
@@ -29,9 +34,9 @@ Streamlit 자체 앱 셸이 응답으로 와서 지도가 영원히 로딩 스�
 """
 
 import os
-import shutil
 import sys
 from pathlib import Path
+from string import Template
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
@@ -68,16 +73,23 @@ def build_facility_map(client_id: str) -> None:
     print(f"생성 완료: {FACILITY_PREBUILT_PATH} ({len(html):,} bytes)")
 
 
-def build_route_map_shell() -> None:
+def build_route_map_shell(client_id: str) -> None:
     """
-    route_map.html은 이제 데이터를 안 굽는다(URL 해시로 받음) - templates/route_map.html을
-    그대로 복사하기만 하면 된다. shutil.copyfile은 바이트 그대로 복사하므로 원본의 CRLF
-    줄바꿈도 그대로 유지된다.
+    route_map.html은 요청별 데이터(마커/내 위치/목적지/경로)는 안 굽지만, ncpKeyId(client_id)는
+    시설찾기와 마찬가지로 고정으로 채워 넣는다 - templates/route_map.html의 ${client_id} 자리
+    딱 하나만 채우는 Template 치환이다. newline="" : Python의 기본 텍스트 모드는 \\r\\n을 읽을 때
+    \\n으로, 쓸 때 다시 OS 기본 줄바꿈으로 바꾸는 "universal newlines" 변환을 하는데, 그걸 끄지
+    않으면 원본의 CRLF가 조용히 LF로 바뀐다(그러면 git diff가 파일 전체를 바꾼 것처럼 보인다).
+    Path.read_text/write_text는 이 버전(3.11)에서 newline 인자를 못 받아서 open()을 직접 쓴다.
     """
     STATIC_DIR.mkdir(exist_ok=True)
+    with open(ROUTE_TEMPLATE_PATH, encoding="utf-8", newline="") as f:
+        template = Template(f.read())
+    html = template.substitute(client_id=client_id)
     dest = STATIC_DIR / ROUTE_STATIC_FILENAME
-    shutil.copyfile(ROUTE_TEMPLATE_PATH, dest)
-    print(f"복사 완료: {ROUTE_TEMPLATE_PATH} -> {dest}")
+    with open(dest, "w", encoding="utf-8", newline="") as f:
+        f.write(html)
+    print(f"생성 완료: {dest} ({len(html):,} bytes)")
 
 
 def main() -> None:
@@ -87,7 +99,7 @@ def main() -> None:
             "NAVER_MAPS_CLIENT_ID가 없습니다. 프로젝트 루트의 .env에 값이 있는지 확인하세요."
         )
     build_facility_map(client_id)
-    build_route_map_shell()
+    build_route_map_shell(client_id)
     print(
         "\n완료! 아래 두 파일을 git에 커밋 + push하세요:\n"
         "  frontend/static/naver_map_prebuilt.html\n"
