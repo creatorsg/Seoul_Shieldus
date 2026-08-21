@@ -1,0 +1,15 @@
+[
+  { "id": "POL_01", "name": "종로경찰서", "district": "종로구", "type": "경찰서", "lat": 37.5755, "lng": 126.9849, "substations": 7, "officers": 420 },
+  { "id": "POL_02", "name": "혜화경찰서", "district": "종로구", "type": "경찰서", "lat": 37.5719, "lng": 127.0028, "substations": 6, "officers": 380 },
+  { "id": "POL_03", "name": "중부경찰서", "district": "중구", "type": "경찰서", "lat": 37.5636, "lng": 126.9895, "substations": 7, "officers": 390 },
+  { "id": "POL_04", "name": "남대문경찰서", "district": "중구", "type": "경찰서", "lat": 37.5548, "lng": 126.9733, "substations": 8, "officers": 410 },
+  { "id": "POL_05", "name": "용산경찰서", "district": "용산구", "type": "경찰서", "lat": 37.5411, "lng": 126.9678, "substations": 7, "officers": 430 },
+  { "id": "POL_06", "name": "강남경찰서", "district": "강남구", "type": "경찰서", "lat": 37.5094, "lng": 127.0669, "substations": 8, "officers": 560 },
+  { "id": "POL_07", "name": "수서경찰서", "district": "강남구", "type": "경찰서", "lat": 37.4935, "lng": 127.0694, "substations": 7, "officers": 480 },
+  { "id": "POL_08", "name": "서초경찰서", "district": "서초구", "type": "경찰서", "lat": 37.4957, "lng": 127.0053, "substations": 7, "officers": 490 },
+  { "id": "POL_09", "name": "방배경찰서", "district": "서초구", "type": "경찰서", "lat": 37.4816, "lng": 126.9831, "substations": 5, "officers": 350 },
+  { "id": "POL_10", "name": "송파경찰서", "district": "송파구", "type": "경찰서", "lat": 37.5019, "lng": 127.1271, "substations": 11, "officers": 620 },
+  { "id": "POL_11", "name": "영등포경찰서", "district": "영등포구", "type": "경찰서", "lat": 37.5258, "lng": 126.9010, "substations": 10, "officers": 580 },
+  { "id": "POL_12", "name": "마포경찰서", "district": "마포구", "type": "경찰서", "lat": 37.5508, "lng": 126.9542, "substations": 8, "officers": 510 },
+  { "id": "POL_13", "name": "관악경찰서", "district": "관악구", "type": "경찰서", "lat": 37.4744, "lng": 126.9513, "substations": 9, "officers": 540 }
+]

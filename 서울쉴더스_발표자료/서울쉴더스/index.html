@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서울-쉴더스 | 웹 프레젠테이션 시스템 (Seoul-Shielders)</title>
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/presentation.css">
+    <style>
+        body {
+            overflow-y: auto !important;
+            min-height: 100vh;
+        }
+
+        .portal-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem 4rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.2rem;
+        }
+
+        .portal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 1.8rem 2.2rem;
+            box-shadow: var(--shadow-card);
+            backdrop-filter: var(--card-backdrop-blur);
+        }
+
+        .portal-title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-badge-bg);
+            color: var(--color-primary-light);
+            border: 1px solid var(--primary-badge-border);
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .portal-hero-title {
+            font-size: 2.4rem;
+            font-weight: 900;
+            color: var(--text-heading);
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+        }
+
+        .portal-hero-desc {
+            font-size: 1.05rem;
+            color: var(--text-sub);
+            margin-top: 6px;
+            max-width: 680px;
+        }
+
+        .portal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .btn-start-presentation {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-cyan) 100%);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 800;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px var(--color-primary-glow);
+            transition: var(--transition-base);
+            text-decoration: none;
+        }
+
+        .btn-start-presentation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--color-primary-glow);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg-solid);
+            color: var(--text-heading);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-fast);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--color-primary-light);
+            background: var(--primary-badge-bg);
+            color: var(--color-primary-light);
+        }
+
+        /* Live Slide Viewer Container */
+        .live-viewer-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .viewer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .viewer-frame-container {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            background: #000000;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .viewer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Slide Cards Grid */
+        .slide-deck-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .deck-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition-base);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: var(--shadow-card);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .deck-card:hover {
+            border-color: var(--color-primary-light);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        .deck-card-num {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--color-primary-light);
+        }
+
+        .deck-card-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin-top: 2px;
+        }
+
+        .deck-card-desc {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        .deck-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 8px;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="portal-container">
+
+    <!-- 1. PORTAL HEADER -->
+    <header class="portal-header">
+        <div>
+            <div class="portal-title-badge">
+                <span class="live-dot" style="width: 7px; height: 7px;"></span>
+                <span>SEOUL-SHIELDERS PRESENTATION PORTAL</span>
+            </div>
+            <h1 class="portal-hero-title">서울-쉴더스 <span class="text-primary">(Seoul-Shielders)</span></h1>
+            <p class="portal-hero-desc">
+                서울지역 보안 인프라 데이터 분석 및 안전지도 서비스 — 16:9 와이드 웹 프레젠테이션 시스템
+            </p>
+            <div class="flex items-center gap-2" style="margin-top: 12px;">
+                <span class="badge badge-primary">총 10개 슬라이드 완비</span>
+                <span class="badge badge-mint">독립 모듈형 아키텍처</span>
+                <span class="badge badge-cyan">반응형 16:9 뷰어</span>
+            </div>
+        </div>
+
+        <div class="portal-actions">
+            <a href="pages/01-intro.html" class="btn-start-presentation">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>발표 시작 (Slide 01)</span>
+            </a>
+            <div class="flex gap-2">
+                <button class="btn-secondary" onclick="presentation.toggleTheme()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <span id="themeLabel">테마 전환</span>
+                </button>
+                <button class="btn-secondary" onclick="presentation.toggleHelp()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>단축키</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. LIVE INTERACTIVE SLIDE VIEWER -->
+    <section class="live-viewer-wrapper">
+        <div class="viewer-header">
+            <div class="flex items-center gap-3">
+                <span class="badge badge-primary font-mono" id="currentSlideNumber">SLIDE 01 / 10</span>
+                <h3 class="text-base font-bold text-heading" id="currentSlideTitle">01. 프로젝트 소개</h3>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="btn-secondary" onclick="prevPortalSlide()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    <span>이전</span>
+                </button>
+                <button class="btn-secondary" onclick="nextPortalSlide()">
+                    <span>다음</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button class="btn-secondary text-primary" onclick="openCurrentSlideDirect()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    <span>전체 페이지 열기</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="viewer-frame-container">
+            <iframe id="portalSlideIframe" class="viewer-iframe" src="pages/01-intro.html"></iframe>
+        </div>
+    </section>
+
+    <!-- 3. SLIDE DECK OVERVIEW GRID -->
+    <section class="slide-deck-section">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-heading">전체 슬라이드 목차 (Slide Deck)</h2>
+                <p class="text-xs text-sub">클릭하면 해당 슬라이드로 바로 이동하거나 상단 뷰어에서 확인하실 수 있습니다.</p>
+            </div>
+            <span class="badge badge-primary">10 Slides Ready</span>
+        </div>
+
+        <div class="deck-grid" id="deckGridContainer">
+            <!-- Populated via presentation.slides array -->
+        </div>
+    </section>
+
+    <!-- 4. TEAM METADATA FOOTER -->
+    <footer class="portal-header" style="padding: 1.2rem 1.8rem;">
+        <div class="team-meta">
+            <div class="team-brand-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>팀원 (Team Seoul-Shielders)</span>
+            </div>
+            <div class="team-members-list">
+                <span class="member-badge">손인선</span>
+                <span class="member-badge">강대현</span>
+                <span class="member-badge">황인찬</span>
+                <span class="member-badge">이승혁</span>
+                <span class="member-badge">전승호</span>
+                <span class="member-badge">정예빈</span>
+                <span class="member-badge">정세진</span>
+            </div>
+        </div>
+        <div class="footer-system-note">
+            <span>서울지역 보안 인프라 데이터 분석 및 안전지도 서비스</span>
+            <span>•</span>
+            <span>2024 Final Web Presentation</span>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Presentation Scripts -->
+<script src="js/presentation.js"></script>
+<script src="js/data.js"></script>
+
+<script>
+    let activePortalIndex = 0;
+
+    function renderDeckGrid() {
+        const container = document.getElementById('deckGridContainer');
+        if (!container || !window.presentation) return;
+
+        container.innerHTML = window.presentation.slides.map((slide, idx) => `
+            <div class="deck-card" onclick="loadSlideInViewer(${idx})">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="deck-card-num">SLIDE ${String(slide.id).padStart(2, '0')}</span>
+                        <span class="badge badge-primary" style="font-size: 0.6rem;">${slide.category || 'SLIDE'}</span>
+                    </div>
+                    <div class="deck-card-title">${slide.title}</div>
+                    <p class="deck-card-desc">${slide.sub}</p>
+                </div>
+                <div class="deck-card-footer">
+                    <span class="text-cyan">미리보기 로드</span>
+                    <a href="${slide.file}" class="text-primary font-bold hover:underline" onclick="event.stopPropagation()">새 탭 열기 ➔</a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function loadSlideInViewer(index) {
+        const slides = window.presentation.slides;
+        if (index < 0 || index >= slides.length) return;
+        
+        activePortalIndex = index;
+        const slide = slides[index];
+
+        const iframe = document.getElementById('portalSlideIframe');
+        const numLabel = document.getElementById('currentSlideNumber');
+        const titleLabel = document.getElementById('currentSlideTitle');
+
+        if (iframe) iframe.src = slide.file;
+        if (numLabel) numLabel.textContent = `SLIDE ${String(slide.id).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+        if (titleLabel) titleLabel.textContent = `${String(slide.id).padStart(2, '0')}. ${slide.title}`;
+    }
+
+    function nextPortalSlide() {
+        if (activePortalIndex < window.presentation.slides.length - 1) {
+            loadSlideInViewer(activePortalIndex + 1);
+        }
+    }
+
+    function prevPortalSlide() {
+        if (activePortalIndex > 0) {
+            loadSlideInViewer(activePortalIndex - 1);
+        }
+    }
+
+    function openCurrentSlideDirect() {
+        const slide = window.presentation.slides[activePortalIndex];
+        if (slide) {
+            window.location.href = slide.file;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderDeckGrid();
+    });
+</script>
+
+</body>
+</html>
