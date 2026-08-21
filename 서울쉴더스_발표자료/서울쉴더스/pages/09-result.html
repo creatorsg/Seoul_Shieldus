@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09. 프로젝트 수행 회고 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • RETROSPECTIVE</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-primary">09. RETROSPECTIVE</span>
+                    <span class="text-xs text-sub">프로젝트 수행 과정에서의 도전 과제 해결 및 레슨런</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">프로젝트 수행 회고 및 4대 핵심 과제 해결</h1>
+                        <p class="sub-title">이종 데이터 융합 · 분모 보정 · 통계 해석의 엄밀성 · 분석의 서비스화</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Lessons Learned</span></div>
+                <span class="slide-counter">SLIDE 09 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content">
+            
+            <!-- 4 Challenge & Solution Grid -->
+            <div class="grid grid-cols-2 gap-3" style="flex: 1;">
+                <!-- Challenge 01 -->
+                <div class="security-card flex flex-col justify-between" style="padding: 10px 14px;">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-primary">Challenge 01</span>
+                            <span class="text-xs text-muted">이종 데이터 결합</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-heading">서로 다른 출처의 공공데이터 정규화</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.72rem; line-height: 1.35; margin-top: 3px;">
+                            경찰청, 행안부, 서울시 데이터 간 자치구 명칭 규격과 기준연도 시차를 정규화하고 중랑구 이상치를 검토하는 파이프라인 경험을 확보했습니다.
+                        </p>
+                    </div>
+                    <div class="text-xs text-mint font-bold pt-1" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        ✔ 성과: 자동화된 데이터 통합 전처리 파이프라인 구축
+                    </div>
+                </div>
+
+                <!-- Challenge 02 -->
+                <div class="security-card flex flex-col justify-between" style="padding: 10px 14px;">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-amber">Challenge 02</span>
+                            <span class="text-xs text-muted">지표 착시 해결</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-heading">절대 건수 평가의 인구 편향 통제</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.72rem; line-height: 1.35; margin-top: 3px;">
+                            단순 발생건수 비교 시 대도시 착시가 발생하는 문제를 인지하고, 주민등록인구 분모를 반영한 1만 명당 보정 지표를 도입했습니다.
+                        </p>
+                    </div>
+                    <div class="text-xs text-mint font-bold pt-1" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        ✔ 성과: 강남 vs 중구 순위 역전 등 객관적 치안 지표 확립
+                    </div>
+                </div>
+
+                <!-- Challenge 03 -->
+                <div class="security-card flex flex-col justify-between" style="padding: 10px 14px;">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-rose">Challenge 03</span>
+                            <span class="text-xs text-muted">해석의 엄밀성</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-heading">상관관계와 인과관계의 엄격한 분리</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.72rem; line-height: 1.35; margin-top: 3px;">
+                            가로등/CCTV 수와 범죄 수치 간 양의 상관성이 나타났을 때 이를 함부로 인과관계로 비약하지 않는 분석가로서의 엄밀성을 유지했습니다.
+                        </p>
+                    </div>
+                    <div class="text-xs text-mint font-bold pt-1" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        ✔ 성과: 도시 규모 효과(Urban Scale Effect) 통계적 입증
+                    </div>
+                </div>
+
+                <!-- Challenge 04 -->
+                <div class="security-card flex flex-col justify-between" style="padding: 10px 14px;">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-mint">Challenge 04</span>
+                            <span class="text-xs text-muted">서비스화</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-heading">정적 보고서에서 실시간 지도 서비스로 전환</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.72rem; line-height: 1.35; margin-top: 3px;">
+                            단순 보고서 제출에 머무르지 않고, Python 분석 엔진과 Streamlit/Plotly 대시보드를 연동하여 누구나 탐색할 수 있는 서비스로 구현했습니다.
+                        </p>
+                    </div>
+                    <div class="text-xs text-mint font-bold pt-1" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        ✔ 성과: 4개 화면 인터랙티브 웹 대시보드 완성
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retrospective Final Quote Banner -->
+            <div class="vision-box" style="padding: 8px 14px; text-align: center; margin-top: 6px;">
+                <p class="text-xs font-bold text-white">
+                    💬 "데이터 분석 결과를 산출하는 것보다, <span class="text-cyan">그 결과를 올바른 기준(분모)으로 해석하고 시민에게 전달하는 것</span>이 더욱 중요하다는 점을 배웠습니다."
+                </p>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>프로젝트 회고 및 레슨런</span></div>
+                <span class="text-xs text-sub">Project Retrospective & Core Problem Solving</span>
+            </div>
+            <div class="footer-system-note">
+                <span>09 / 10</span>
+                <span>•</span>
+                <span>Retrospective</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>
