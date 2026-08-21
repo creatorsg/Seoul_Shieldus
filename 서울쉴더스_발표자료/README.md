@@ -9,8 +9,8 @@
 ```
 ## 📌 발표자료
 
-PPT 발표자료: https://docs.google.com/presentation/d/1xsT65RovChZNU-muxuIcdbeeWrv9shh-/edit?slide=id.p1#slide=id.p1
-HTML 발표자료: 서울쉴더스/index.html
+### PPT 발표자료: https://docs.google.com/presentation/d/1xsT65RovChZNU-muxuIcdbeeWrv9shh-/edit?slide=id.p1#slide=id.p1
+### HTML 발표자료: 서울쉴더스/index.html
 
 ## 웹 발표자료 소스: 서울쉴더스/
 
