@@ -3,24 +3,37 @@
     html, body { margin: 0; height: 100%; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif; }
 </style>
 <div id="route-map" style="width:100%;height:100%;"></div>
+<script type="text/javascript"
+    src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${client_id}"></script>
 <script>
-    // 이 파일은 저장소에 고정으로 커밋되어 있고(scripts/build_static_maps.py가 templates/에서
-    // 그대로 복사) 절대 런타임에 다시 쓰지 않는다. 요청마다 달라지는 데이터(내 위치/목적지/경로/
-    // 마커)는 파일이 아니라 URL 해시(#...)로 넘어온다 - 해시는 브라우저가 서버로 보내지 않는
-    // 순수 클라이언트 값이라, 이 방식이면 파일을 새로 쓸 필요 자체가 없어진다(배경: naver_map.py
-    // 모듈 docstring, render_route_map 함수 문서 참고).
-    var payload = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+    // 이 파일은 저장소에 고정으로 커밋되어 있고(scripts/build_static_maps.py가 ncpKeyId만 채워서
+    // 빌드) 절대 런타임에 다시 쓰지 않는다. 처음엔 요청별 데이터(내 위치/목적지/경로/마커)를
+    // URL 해시(#...)로 실어 보냈는데, 로컬에서 바로 "네이버 오픈API 인증 실패"가 났다 - 네이버
+    // 지도 SDK가 도메인 인증 시 location.href를 그대로 검사하는 것으로 보이는데, 데이터를 통째로
+    // 욱여넣은 해시가 너무 커서 등록된 서비스 URL과 매치가 안 된 것으로 보인다. 그래서
+    // sessionStorage로 바꿨다 - 이 iframe이 부모 페이지(...streamlit.app)와 같은 출처라
+    // sessionStorage를 그대로 공유하고, URL은 이 파일 경로 그대로 깨끗하게 유지된다(배경:
+    // naver_map.py 모듈 docstring, app.py의 _send_route_payload 참고).
+    //
+    // 부모 페이지가 sessionStorage에 값을 채워 넣는 타이밍과 이 iframe이 스크립트를 실행하는
+    // 타이밍이 100% 동시라는 보장은 없어서, 값이 없으면 잠깐씩 재시도한다(최대 3초).
+    var PAYLOAD_KEY = 'shieldus_route_payload';
 
-    // maps.js의 ncpKeyId는 <script src>의 정적 속성이라 이 값도 마찬가지로 location.hash가
-    // 파싱된 뒤에야 알 수 있다. 그래서 스크립트 태그를 처음부터 박아두는 대신, payload를 읽은
-    // 다음 코드로 직접 만들어 붙이고, onload에서 실제 지도 초기화를 이어간다.
-    var mapsScript = document.createElement('script');
-    mapsScript.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' +
-        encodeURIComponent(payload.client_id);
-    mapsScript.onload = initRouteMap;
-    document.head.appendChild(mapsScript);
+    function waitForPayload(retriesLeft) {
+        var raw = sessionStorage.getItem(PAYLOAD_KEY);
+        if (raw) {
+            initRouteMap(JSON.parse(raw));
+            return;
+        }
+        if (retriesLeft > 0) {
+            setTimeout(function () { waitForPayload(retriesLeft - 1); }, 100);
+            return;
+        }
+        document.getElementById('route-map').innerHTML =
+            '<div style="padding:16px;color:#888;">경로 데이터를 불러오지 못했습니다. 새로고침해주세요.</div>';
+    }
 
-    function initRouteMap() {
+    function initRouteMap(payload) {
         var map = new naver.maps.Map('route-map', {
             center: new naver.maps.LatLng(37.5665, 126.9780),
             zoom: 13
@@ -116,4 +129,6 @@
             map.fitBounds(bounds);
         }
     }
+
+    waitForPayload(30);
 </script>
