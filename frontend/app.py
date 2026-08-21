@@ -337,10 +337,20 @@ div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] .
 
 def render_district_detail(row, df, cctv_stats) -> None:
     """선택된 자치구 하나의 안심지수/세부 점수 + CCTV 목적별 통계를 그린다."""
+    st.markdown(DISTRICT_DETAIL_CSS, unsafe_allow_html=True)
+    st.markdown(GLASS_CARD_CSS, unsafe_allow_html=True)
     st.markdown(f"#### {row['구']} 상세")
-    st.metric("안심지수", f"{row['안심지수']}점")
-    for label, col in DETAIL_SCORE_FIELDS:
-        _render_score_bar(label, row[col])
+    seoul_avg = round(df["안심지수"].mean(), 1)
+    diff = row["안심지수"] - seoul_avg
+    with st.container(border=True):
+        st.markdown("<span class='glass-card-marker'></span>", unsafe_allow_html=True)
+        st.metric(
+            "안심지수",
+            f"{row['안심지수']}점",
+            delta=f"서울 평균({seoul_avg}점) 대비 {diff:+.1f}점",
+        )
+        for label, col in DETAIL_SCORE_FIELDS:
+            _render_score_bar(label, row[col])
 
     if cctv_stats.empty:
         return
@@ -348,17 +358,22 @@ def render_district_detail(row, df, cctv_stats) -> None:
     if district_cctv.empty:
         return
     c = district_cctv.iloc[0]
-    st.markdown("##### CCTV 목적별 설치 현황")
-    st.caption(f"총 {c['총_CCTV']:,}대 (그중 방범 목적 {c['방범_합계']:,}대)")
-    # sort=False가 중요하다: st.bar_chart는 기본값(sort=True)일 때 Altair가 카테고리(구매목적명)를
-    # 알아서 다시 정렬해버려서, 우리가 값(대수) 기준 내림차순으로 미리 만들어둔 dict 순서가
-    # 무시되고 조용히 다른 순서(사실상 알파벳/가나다순)로 그려진다. sort=False를 줘야 넘겨준
-    # dict 순서 그대로("많은 순") 막대가 그려진다.
-    #
-    # horizontal=True도 같이 준다: 세로 막대(기본값)는 "방범용"/"무단투기단속용"처럼 4글자
-    # 이상인 라벨이 가로 폭에 안 들어가서 Altair가 자동으로 90도 눕혀버린다. 막대를 가로로
-    # 눕히면 목적명이 y축 왼쪽에 원래 방향(가로) 그대로 나오기 때문에 이 문제가 자체로 해결된다.
-    st.bar_chart(_sorted_cctv_purpose_counts(c), height=220, sort=False, horizontal=True)
+    with st.container(border=True):
+        st.markdown("<span class='glass-card-marker'></span>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='font-size:24px;font-weight:600;margin-top:32px;'>CCTV 목적별 설치 현황</div>",
+            unsafe_allow_html=True,
+        )
+        st.caption(f"총 {c['총_CCTV']:,}대 (그중 방범 목적 {c['방범_합계']:,}대)")
+        # sort=False가 중요하다: st.bar_chart는 기본값(sort=True)일 때 Altair가 카테고리(구매목적명)를
+        # 알아서 다시 정렬해버려서, 우리가 값(대수) 기준 내림차순으로 미리 만들어둔 dict 순서가
+        # 무시되고 조용히 다른 순서(사실상 알파벳/가나다순)로 그려진다. sort=False를 줘야 넘겨준
+        # dict 순서 그대로("많은 순") 막대가 그려진다.
+        #
+        # horizontal=True도 같이 준다: 세로 막대(기본값)는 "방범용"/"무단투기단속용"처럼 4글자
+        # 이상인 라벨이 가로 폭에 안 들어가서 Altair가 자동으로 90도 눕혀버린다. 막대를 가로로
+        # 눕히면 목적명이 y축 왼쪽에 원래 방향(가로) 그대로 나오기 때문에 이 문제가 자체로 해결된다.
+        st.bar_chart(_sorted_cctv_purpose_counts(c), height=220, sort=False, horizontal=True)
 
 
 def _sorted_cctv_purpose_counts(c) -> dict:
@@ -449,6 +464,16 @@ def _add_district_labels(m: "folium.Map", geo: dict) -> None:
                 )
             ),
         ).add_to(m)
+
+
+EXPANDER_CARD_CSS = """
+<style>
+div[data-testid="stExpander"] details {
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+</style>
+"""
 
 
 def render_index_page(geo: dict, df, cctv_stats) -> None:
@@ -677,7 +702,11 @@ def render_home_page(page_heatmap, page_facility, page_route) -> None:
     # [1, 2, 1] 비율을 [1, 1, 1]이나 [1, 3, 1] 등으로 바꿔서 사진 크기를 조절할 수 있습니다.
     img_l, img_c, img_r = st.columns([1, 12, 1])
     with img_c:
-        st.image("hero.png", use_container_width=True)
+        # "hero.png" 같은 상대경로는 streamlit run을 어느 폴더에서 실행했느냐(cwd)에 따라
+        # 찾는 위치가 달라진다 - 리포 루트에서 실행하면 frontend/hero.png를 못 찾는다.
+        # BASE_DIR(리포 루트, data_access.py에서 정의)를 기준으로 절대경로를 만들어서
+        # 어디서 실행하든 항상 같은 파일을 가리키게 한다.
+        st.image(str(BASE_DIR / "frontend" / "hero.png"), use_container_width=True)
 
     # 3. 메인 텍스트 (늦은 밤 골목길...)
     st.markdown(
@@ -894,30 +923,49 @@ def main() -> None:
     # 사이드바가 "자치구 필터"가 아니라 페이지를 고르는 앱 내비게이션 역할을 한다 (기본 동작 -
     # 왼쪽에서 접었다 펼 수 있는 사이드바 형태). 각 페이지에 icon을 지정해서 사이드바 목록에서도
     # 어떤 탭인지 아이콘으로 바로 구분되게 했다.
-    # 세 page 콜백이 다 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
-    # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 셋 다 이름이 같아서 충돌한다)
+    # 네 page 콜백이 다 lambda라서 이름이 똑같이 <lambda>로 잡혀 url_path가 자동으로 안 정해진다.
+    # (Streamlit이 콜러블 이름/파일명/title에서 url_path를 유추하는데, lambda는 넷 다 이름이 같아서 충돌한다)
     # url_path를 직접 지정해서 각 페이지 주소가 겹치지 않게 한다.
-    pages = [
-        st.Page(
-            lambda: render_index_page(geo, df, cctv_stats),
-            title="안심지수 히트맵",
-            icon="🛡️",
-            url_path="index",
-        ),
-        st.Page(
-            lambda: render_facility_page(facilities, df),
-            title="시설 찾기",
-            icon="📍",
-            url_path="facilities",
-        ),
-        st.Page(
-            lambda: render_route_page(facilities),
-            title="길찾기",
-            icon="🧭",
-            url_path="route",
-        ),
-    ]
+    #
+    # page_home의 lambda가 page_heatmap/page_facility/page_route를 참조하는데, 아래 변수
+    # 선언 순서상 page_home이 먼저 나온다 - 그래도 lambda 안 코드는 "호출되는 시점"에야 이름을
+    # 찾기 때문에(클로저), 실제 페이지 전환이 일어나는 시점엔 셋 다 이미 정의돼 있어 문제없다.
+    page_home = st.Page(
+        lambda: render_home_page(page_heatmap, page_facility, page_route),
+        title="홈",
+        icon="🏠",
+        url_path="home",
+    )
+    page_heatmap = st.Page(
+        lambda: render_index_page(geo, df, cctv_stats),
+        title="안심지수 히트맵",
+        icon="🛡️",
+        url_path="index",
+    )
+    page_facility = st.Page(
+        lambda: render_facility_page(facilities, df),
+        title="시설 찾기",
+        icon="📍",
+        url_path="facilities",
+    )
+    page_route = st.Page(
+        lambda: render_route_page(facilities),
+        title="길찾기",
+        icon="🧭",
+        url_path="route",
+    )
+    pages = [page_home, page_heatmap, page_facility, page_route]
     current_page = st.navigation(pages)
+
+    with st.sidebar:
+        # 내비게이션 메뉴(글씨)들과 로고 사이에 적당한 여백을 준다. 더 아래로 내리고 싶으면
+        # <br> 개수를 늘리면 된다.
+        st.markdown("<br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
+
+        # 현재 크기(비율) 그대로 사이드바 가로 길이에 꽉 차게 들어간다.
+        # hero.png와 같은 이유로 파일명만 쓰지 않고 BASE_DIR 기준 절대경로로 가리킨다.
+        st.image(str(BASE_DIR / "frontend" / "logo.png"), width=96)
+
     current_page.run()
     # 기본(첫 번째) 페이지가 이제 홈이라, url_path가 빈 문자열로 나올 때 대체값도 "home"으로 맞춘다
     # (다른 페이지와 구분만 되면 되는 저장용 키라 값 자체는 임의로 정해도 무방).
