@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04. 전처리 및 방법론 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • PREPROCESSING & METHOD</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-indigo">04. PREPROCESSING & METHOD</span>
+                    <span class="text-xs text-sub">데이터 정제 파이프라인 및 통계 분석 모델 정의</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">데이터 정제 파이프라인 및 핵심 분석 지표 정의</h1>
+                        <p class="sub-title">결측치 검증 · 품질 관리 원칙 · 인구 1만 명당 보정 지표 및 상관분석 모델</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Data Quality & Metrics</span></div>
+                <span class="slide-counter">SLIDE 04 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1fr 1.08fr; gap: 1.4rem;">
+            
+            <!-- Left: Preprocessing Steps & Quality Case Study -->
+            <div class="flex flex-col justify-between" style="gap: 10px;">
+                <div class="security-card" style="padding: 10px 14px;">
+                    <span class="text-xs font-bold text-primary block" style="margin-bottom: 6px;">4단계 정제 파이프라인</span>
+                    <div class="space-y-1.5">
+                        <div class="cyber-list-item">
+                            <span class="font-bold text-heading">1. 명칭 표준화</span>
+                            <span class="text-xs text-sub font-mono">'서울시 종로구' ➔ '종로구' 정규화</span>
+                        </div>
+                        <div class="cyber-list-item">
+                            <span class="font-bold text-heading">2. 수치형 변환</span>
+                            <span class="text-xs text-sub font-mono">콤마(,) 제거 및 정수/부동소수점 파싱</span>
+                        </div>
+                        <div class="cyber-list-item">
+                            <span class="font-bold text-heading">3. 결측치 무결성</span>
+                            <span class="text-xs text-sub font-mono">25개 자치구 Key 매칭 및 Null 검출</span>
+                        </div>
+                        <div class="cyber-list-item">
+                            <span class="font-bold text-heading">4. 다차원 JOIN</span>
+                            <span class="text-xs text-sub font-mono">범죄+인구+인프라 통합 데이터셋 구축</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality Case Study -->
+                <div class="security-card" style="padding: 10px 14px; background: rgba(15,23,42,0.85); border-color: rgba(245,158,11,0.3);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="badge badge-amber">품질 검토 사례</span>
+                        <span class="text-xs text-muted">중랑구 가로등 0건 이상치</span>
+                    </div>
+                    <p class="text-xs text-sub" style="font-size: 0.72rem; line-height: 1.35;">
+                        수집 데이터에서 중랑구 가로등이 0개로 집계되는 이상치를 발견하였습니다. 임의 추정치 대입(Imputation)을 지양하고, <strong class="text-amber">원본 데이터를 보존하되 시각화 시 한계점을 투명하게 명시</strong>하는 데이터 관리 원칙을 준수했습니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: 3 Core Analytical Metrics & Stats Models -->
+            <div class="flex flex-col justify-between" style="gap: 10px;">
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Metric 1 -->
+                    <div class="security-card" style="padding: 8px 10px;">
+                        <span class="badge badge-primary" style="font-size: 0.6rem; padding: 1px 5px;">지표 01</span>
+                        <h4 class="text-xs font-bold text-heading" style="margin-top: 4px;">절대 발생건수</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.65rem; margin-top: 2px;">5대 범죄 단순 합계로 치안 행정의 1차 발생 규모 파악</p>
+                    </div>
+
+                    <!-- Metric 2 -->
+                    <div class="security-card" style="padding: 8px 10px; border-color: rgba(16,185,129,0.3);">
+                        <span class="badge badge-mint" style="font-size: 0.6rem; padding: 1px 5px;">핵심 보정 02</span>
+                        <h4 class="text-xs font-bold text-mint" style="margin-top: 4px;">1만명당 발생건수</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.65rem; margin-top: 2px;">(범죄수 ÷ 인구) × 10,000<br>인구 규모 편향 제거</p>
+                    </div>
+
+                    <!-- Metric 3 -->
+                    <div class="security-card" style="padding: 8px 10px;">
+                        <span class="badge badge-cyan" style="font-size: 0.6rem; padding: 1px 5px;">지표 03</span>
+                        <h4 class="text-xs font-bold text-heading" style="margin-top: 4px;">유형별 구성비</h4>
+                        <p class="text-xs text-sub" style="font-size: 0.65rem; margin-top: 2px;">폭력, 절도, 성범죄 등 자치구별 범죄 질적 특성 비교</p>
+                    </div>
+                </div>
+
+                <!-- Stats Methodology Card -->
+                <div class="vision-box" style="padding: 10px 14px;">
+                    <div class="text-xs font-bold text-cyan uppercase tracking-wider mb-1">통계 분석 기법 (Statistical Methods)</div>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div style="background: rgba(15,23,42,0.6); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                            <strong class="text-primary font-bold">Pearson 상관계수 (r):</strong>
+                            <p class="text-sub" style="font-size: 0.68rem; margin-top: 2px;">가로등/CCTV 수와 범죄 발생 간의 선형 연관성 강도 측정</p>
+                        </div>
+                        <div style="background: rgba(15,23,42,0.6); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                            <strong class="text-mint font-bold">Spearman 순위상관 (ρ):</strong>
+                            <p class="text-sub" style="font-size: 0.68rem; margin-top: 2px;">극단치 영향을 줄인 자치구 간 단조 순위 상관성 검증</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>데이터 전처리 및 분석 방법론</span></div>
+                <span class="text-xs text-sub">Preprocessing Pipeline & Statistical Formulations</span>
+            </div>
+            <div class="footer-system-note">
+                <span>04 / 10</span>
+                <span>•</span>
+                <span>Methodology</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>
