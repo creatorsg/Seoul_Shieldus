@@ -1,134 +1,100 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
-<style>
-    html, body { margin: 0; height: 100%; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif; }
-</style>
-<div id="route-map" style="width:100%;height:100%;"></div>
-<script type="text/javascript"
-    src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${client_id}"></script>
-<script>
-    // 이 파일은 저장소에 고정으로 커밋되어 있고(scripts/build_static_maps.py가 ncpKeyId만 채워서
-    // 빌드) 절대 런타임에 다시 쓰지 않는다. 처음엔 요청별 데이터(내 위치/목적지/경로/마커)를
-    // URL 해시(#...)로 실어 보냈는데, 로컬에서 바로 "네이버 오픈API 인증 실패"가 났다 - 네이버
-    // 지도 SDK가 도메인 인증 시 location.href를 그대로 검사하는 것으로 보이는데, 데이터를 통째로
-    // 욱여넣은 해시가 너무 커서 등록된 서비스 URL과 매치가 안 된 것으로 보인다. 그래서
-    // sessionStorage로 바꿨다 - 이 iframe이 부모 페이지(...streamlit.app)와 같은 출처라
-    // sessionStorage를 그대로 공유하고, URL은 이 파일 경로 그대로 깨끗하게 유지된다(배경:
-    // naver_map.py 모듈 docstring, app.py의 _send_route_payload 참고).
-    //
-    // 부모 페이지가 sessionStorage에 값을 채워 넣는 타이밍과 이 iframe이 스크립트를 실행하는
-    // 타이밍이 100% 동시라는 보장은 없어서, 값이 없으면 잠깐씩 재시도한다(최대 3초).
-    var PAYLOAD_KEY = 'shieldus_route_payload';
+var naver = w.naver;
+var mount = w.document.getElementById('shieldus-route-map');
+if (!mount) { return; }
 
-    function waitForPayload(retriesLeft) {
-        var raw = sessionStorage.getItem(PAYLOAD_KEY);
-        if (raw) {
-            initRouteMap(JSON.parse(raw));
-            return;
-        }
-        if (retriesLeft > 0) {
-            setTimeout(function () { waitForPayload(retriesLeft - 1); }, 100);
-            return;
-        }
-        document.getElementById('route-map').innerHTML =
-            '<div style="padding:16px;color:#888;">경로 데이터를 불러오지 못했습니다. 새로고침해주세요.</div>';
+var map = new naver.maps.Map(mount, {
+    center: new naver.maps.LatLng(37.5665, 126.9780),
+    zoom: 13
+});
+
+// 내 위치/목적지/경로 같은 요청별 데이터는 naver_map.py의 build_route_map_js()가 호출되는
+// 시점에 이미 이 자리에 값으로 그대로 박혀 들어온다 - 예전 sessionStorage 전달 방식(waitForPayload
+// 재시도 로직)은 더 이상 필요 없다. 이 코드는 window.parent 안에서 직접 실행되므로
+// document/navigator도 w. 접두사를 붙인다.
+var typeStyles = ${type_styles_json};
+var markersByType = ${markers_by_type_json};
+var destinationName = ${destination_name_json};
+var myLocation = ${my_location_json};
+var routeCoords = ${route_json};
+
+function pinIcon(color, size) {
+    return {
+        content: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50% 50% 50% 0;' +
+            'transform:rotate(-45deg);background:' + color + ';border:2px solid white;' +
+            'box-shadow:0 0 2px rgba(0,0,0,.5);"></div>',
+        anchor: new naver.maps.Point(size / 2, size)
+    };
+}
+
+function showToast(message) {
+    var toast = w.document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+        'background:rgba(0,0,0,0.8);color:#fff;padding:10px 16px;border-radius:20px;' +
+        'font-size:13px;z-index:9999;transition:opacity 0.3s;max-width:80%;text-align:center;';
+    w.document.body.appendChild(toast);
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        setTimeout(function () { toast.remove(); }, 300);
+    }, 1500);
+}
+
+function copyAddressToClipboard(name, address) {
+    var done = function () { showToast(name + ' 주소가 복사되었습니다'); };
+    var fail = function () { showToast('주소 복사에 실패했습니다: ' + address); };
+    if (w.navigator.clipboard && w.navigator.clipboard.writeText) {
+        w.navigator.clipboard.writeText(address).then(done).catch(fail);
+    } else {
+        fail();
     }
+}
 
-    function initRouteMap(payload) {
-        var map = new naver.maps.Map('route-map', {
-            center: new naver.maps.LatLng(37.5665, 126.9780),
-            zoom: 13
+// 목적지로 고른 시설은 더 크고 진한 색(강조)으로, 나머지는 평소 색으로 그린다.
+Object.keys(markersByType).forEach(function (type) {
+    var color = typeStyles[type] || '#757575';
+    markersByType[type].forEach(function (f) {
+        var isDestination = f.name === destinationName;
+        var marker = new naver.maps.Marker({
+            position: new naver.maps.LatLng(f.lat, f.lng),
+            map: map,
+            title: f.name,
+            icon: isDestination ? pinIcon('#D81B60', 26) : pinIcon(color, 14),
+            zIndex: isDestination ? 200 : 100
         });
-
-        var typeStyles = payload.type_styles;
-        var markersByType = payload.markers_by_type;
-        var destinationName = payload.destination_name;
-        var myLocation = payload.my_location;
-        var routeCoords = payload.route;
-
-        function pinIcon(color, size) {
-            return {
-                content: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50% 50% 50% 0;' +
-                    'transform:rotate(-45deg);background:' + color + ';border:2px solid white;' +
-                    'box-shadow:0 0 2px rgba(0,0,0,.5);"></div>',
-                anchor: new naver.maps.Point(size / 2, size)
-            };
-        }
-
-        // 마커를 클릭(모바일에선 터치)하면 주소를 클립보드에 복사해주고, 잠깐 떴다 사라지는
-        // 토스트로 알려준다. alert()는 지도 조작을 막는 모달이라 쓰지 않는다.
-        function showToast(message) {
-            var toast = document.createElement('div');
-            toast.textContent = message;
-            toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
-                'background:rgba(0,0,0,0.8);color:#fff;padding:10px 16px;border-radius:20px;' +
-                'font-size:13px;z-index:9999;transition:opacity 0.3s;max-width:80%;text-align:center;';
-            document.body.appendChild(toast);
-            setTimeout(function () {
-                toast.style.opacity = '0';
-                setTimeout(function () { toast.remove(); }, 300);
-            }, 1500);
-        }
-
-        function copyAddressToClipboard(name, address) {
-            var done = function () { showToast(name + ' 주소가 복사되었습니다'); };
-            var fail = function () { showToast('주소 복사에 실패했습니다: ' + address); };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(address).then(done).catch(fail);
-            } else {
-                fail();
-            }
-        }
-
-        // 목적지로 고른 시설은 더 크고 진한 색(강조)으로, 나머지는 평소 색으로 그린다.
-        Object.keys(markersByType).forEach(function (type) {
-            var color = typeStyles[type] || '#757575';
-            markersByType[type].forEach(function (f) {
-                var isDestination = f.name === destinationName;
-                var marker = new naver.maps.Marker({
-                    position: new naver.maps.LatLng(f.lat, f.lng),
-                    map: map,
-                    title: f.name,
-                    icon: isDestination ? pinIcon('#D81B60', 26) : pinIcon(color, 14),
-                    zIndex: isDestination ? 200 : 100
-                });
-                if (f.address) {
-                    naver.maps.Event.addListener(marker, 'click', function () {
-                        copyAddressToClipboard(f.name, f.address);
-                    });
-                }
+        if (f.address) {
+            naver.maps.Event.addListener(marker, 'click', function () {
+                copyAddressToClipboard(f.name, f.address);
             });
-        });
-
-        if (myLocation) {
-            var myLatLng = new naver.maps.LatLng(myLocation.lat, myLocation.lng);
-            new naver.maps.Marker({
-                position: myLatLng,
-                map: map,
-                icon: {
-                    content: '<div style="background:#4285F4;border:2px solid white;border-radius:50%;width:14px;height:14px;"></div>',
-                    anchor: new naver.maps.Point(7, 7)
-                },
-                title: '내 위치',
-                zIndex: 300
-            });
-            map.setCenter(myLatLng);
         }
+    });
+});
 
-        if (routeCoords.length) {
-            var path = routeCoords.map(function (p) { return new naver.maps.LatLng(p.lat, p.lng); });
-            new naver.maps.Polyline({
-                map: map,
-                path: path,
-                strokeColor: '#1E88E5',
-                strokeWeight: 5,
-                strokeOpacity: 0.85
-            });
+if (myLocation) {
+    var myLatLng = new naver.maps.LatLng(myLocation.lat, myLocation.lng);
+    new naver.maps.Marker({
+        position: myLatLng,
+        map: map,
+        icon: {
+            content: '<div style="background:#4285F4;border:2px solid white;border-radius:50%;width:14px;height:14px;"></div>',
+            anchor: new naver.maps.Point(7, 7)
+        },
+        title: '내 위치',
+        zIndex: 300
+    });
+    map.setCenter(myLatLng);
+}
 
-            var bounds = new naver.maps.LatLngBounds(path[0], path[0]);
-            path.forEach(function (p) { bounds.extend(p); });
-            map.fitBounds(bounds);
-        }
-    }
+if (routeCoords.length) {
+    var path = routeCoords.map(function (p) { return new naver.maps.LatLng(p.lat, p.lng); });
+    new naver.maps.Polyline({
+        map: map,
+        path: path,
+        strokeColor: '#1E88E5',
+        strokeWeight: 5,
+        strokeOpacity: 0.85
+    });
 
-    waitForPayload(30);
-</script>
+    var bounds = new naver.maps.LatLngBounds(path[0], path[0]);
+    path.forEach(function (p) { bounds.extend(p); });
+    map.fitBounds(bounds);
+}
