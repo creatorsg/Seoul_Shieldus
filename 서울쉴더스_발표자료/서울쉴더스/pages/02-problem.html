@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>02. 문제 정의 & 배경 | 서울-쉴더스</title>
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • PROBLEM DEFINITION</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-rose">02. PROBLEM DEFINITION</span>
+                    <span class="text-xs text-sub">프로젝트 기획 배경 및 비판적 문제의식</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon" style="background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">치안 데이터의 분산과 <span class="highlight text-rose">'절대건수 착시'</span> 문제</h1>
+                        <p class="sub-title">"범죄 발생건수가 많은 지역이 과연 상대적으로 더 위험한 지역일까?"</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Critical Analysis</span></div>
+                <span class="slide-counter">SLIDE 02 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem;">
+            
+            <!-- Left Column: 3 Core Critical Problems -->
+            <div class="flex flex-col justify-between" style="gap: 10px;">
+                <!-- Problem Card 1 -->
+                <div class="security-card" style="padding: 0.95rem 1.2rem;">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-rose">문제 01</span>
+                            <h3 class="text-sm font-bold text-heading">안전 인프라 데이터의 파편화 (Fragmentation)</h3>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-rose"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </div>
+                    <p class="text-xs text-sub">경찰서·지구대, 안심귀갓길, 방범 CCTV, 비상벨이 각 공공기관 및 자치구별로 분산 관리되어 시민이 내 주변의 종합 치안 환경을 한눈에 파악하기 어렵습니다.</p>
+                </div>
+
+                <!-- Problem Card 2 -->
+                <div class="security-card" style="padding: 0.95rem 1.2rem;">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-amber">문제 02</span>
+                            <h3 class="text-sm font-bold text-heading">인구 규모에 따른 통계 착시 (Scale Bias)</h3>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    </div>
+                    <p class="text-xs text-sub">인구가 많은 자치구는 절대 발생건수가 자연히 높게 집계되지만, 상주인구 규모를 보정한 실제 주민 체감 치안 위험도와는 큰 차이가 발생합니다.</p>
+                </div>
+
+                <!-- Problem Card 3 -->
+                <div class="security-card" style="padding: 0.95rem 1.2rem;">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-indigo">문제 03</span>
+                            <h3 class="text-sm font-bold text-heading">공간 정보와 직관적 시각화의 부재</h3>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+                    </div>
+                    <p class="text-xs text-sub">기존 통계표 형식의 데이터 제공 방식은 시민들이 야간 귀가 시 어느 길이 안전한지, 내 위치 반경에 어떤 방범 시설이 있는지 직관적으로 알려주지 못합니다.</p>
+                </div>
+            </div>
+
+            <!-- Right Column: Case Illustration & Solution Paradigm -->
+            <div class="flex flex-col justify-between" style="gap: 10px;">
+                <!-- Real Contrast Example Box -->
+                <div class="security-card flex flex-col justify-between" style="background: linear-gradient(135deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.95) 100%);">
+                    <div class="flex items-center justify-between">
+                        <span class="badge badge-primary">실제 데이터 착시 사례 대조</span>
+                        <span class="text-xs text-muted">2024년 공공데이터 기준</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3" style="margin: 8px 0;">
+                        <!-- Case A -->
+                        <div class="security-card" style="padding: 10px; background: rgba(15,23,42,0.7); text-align: center;">
+                            <div class="text-xs text-muted">절대 발생건수 1위</div>
+                            <div class="text-xl font-black text-primary" style="margin: 2px 0;">강남구</div>
+                            <div class="text-sm font-bold text-heading">6,107 <span class="text-xs text-muted">건</span></div>
+                            <div class="text-xs text-sub" style="font-size: 0.68rem; margin-top: 4px;">상주인구 55.0만명<br>대규모 상권·유동인구 영향</div>
+                        </div>
+
+                        <!-- Case B -->
+                        <div class="security-card" style="padding: 10px; background: rgba(15,23,42,0.7); text-align: center;">
+                            <div class="text-xs text-muted">인구 1만명당 발생 1위</div>
+                            <div class="text-xl font-black text-amber" style="margin: 2px 0;">중구</div>
+                            <div class="text-sm font-bold text-heading">244.17 <span class="text-xs text-muted">건/1만명</span></div>
+                            <div class="text-xs text-sub" style="font-size: 0.68rem; margin-top: 4px;">상주인구 12.1만명<br>도심 중심지 분모 효과</div>
+                        </div>
+                    </div>
+
+                    <div class="vision-box" style="padding: 8px 12px; background: rgba(15,23,42,0.9);">
+                        <p class="text-xs text-heading font-bold" style="line-height: 1.35;">
+                            👉 <strong class="text-cyan">서울-쉴더스의 해결 방안:</strong> "단일 지표에 왜곡되지 않도록 공공데이터를 정밀 보정하고, 지도 기반 공간 레이어로 연결하여 시민에게 투명한 안전 정보를 제공합니다."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3 Transformation Pillars -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="security-card" style="padding: 8px; text-align: center;">
+                        <span class="text-xs font-bold text-primary">01. 통합 연결</span>
+                        <p class="text-xs text-sub" style="font-size: 0.65rem; margin-top: 2px;">분산 데이터 ➔ 단일 GIS 매핑</p>
+                    </div>
+                    <div class="security-card" style="padding: 8px; text-align: center;">
+                        <span class="text-xs font-bold text-mint">02. 객관적 보정</span>
+                        <p class="text-xs text-sub" style="font-size: 0.65rem; margin-top: 2px;">절대건수 ➔ 인구 보정 지표</p>
+                    </div>
+                    <div class="security-card" style="padding: 8px; text-align: center;">
+                        <span class="text-xs font-bold text-cyan">03. 체감형 서비스</span>
+                        <p class="text-xs text-sub" style="font-size: 0.65rem; margin-top: 2px;">통계표 ➔ 실시간 안전지도</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>문제 정의 및 기획 배경</span></div>
+                <span class="text-xs text-sub">Seoul Shielders Data Architecture</span>
+            </div>
+            <div class="footer-system-note">
+                <span>02 / 10</span>
+                <span>•</span>
+                <span>Why This Project?</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>

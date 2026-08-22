@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03. 공공데이터 수집 | 서울-쉴더스</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/presentation.css">
+</head>
+<body>
+
+<div class="presentation-stage">
+
+    <div class="stage-toolbar">
+        <div class="badge-live">
+            <span class="live-dot"></span>
+            <span>SEOUL SHIELDERS • DATA COLLECTION</span>
+        </div>
+        <div class="toolbar-controls">
+            <button class="btn-toolbar" onclick="presentation.toggleTheme()"><span id="themeLabel">테마 전환</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleDrawer()"><span>목차</span></button>
+            <button class="btn-toolbar" onclick="presentation.toggleFullScreen()"><span>전체화면</span></button>
+        </div>
+    </div>
+
+    <div class="slide-canvas">
+        <div class="slide-top-bar"></div>
+
+        <!-- 1. HEADER SECTION -->
+        <header class="slide-header">
+            <div class="header-left">
+                <div class="header-tag-row">
+                    <span class="badge badge-primary">03. DATA COLLECTION</span>
+                    <span class="text-xs text-sub">수집 데이터셋 명세 및 출처 검증</span>
+                </div>
+                <div class="main-title-group">
+                    <div class="main-title-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">서울시 생활안전 및 보안 인프라 공공데이터셋</h1>
+                        <p class="sub-title">경찰청 5대 범죄 · 행안부 주민등록인구 · 서울시 가로등/CCTV/안심귀갓길 데이터 연계</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="org-badge"><span class="dot"></span><span>Open Data Integration</span></div>
+                <span class="slide-counter">SLIDE 03 / 10</span>
+            </div>
+        </header>
+
+        <!-- 2. MIDDLE CONTENT SECTION -->
+        <main class="slide-content">
+            
+            <!-- 4 Key Dataset Cards Grid -->
+            <div class="grid grid-cols-4 gap-4" style="flex: 1;">
+                <!-- Dataset 1: Crime -->
+                <div class="security-card flex flex-col justify-between" style="border-top: 3px solid var(--color-primary);">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-primary">5대 범죄 발생 통계</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </div>
+                        <div class="text-2xl font-black text-heading my-1">80,819 <span class="unit text-xs text-muted">건</span></div>
+                        <p class="text-xs text-sub">살인, 강도, 성범죄, 절도, 폭력 등 서울 25개 자치구별 발생 건수</p>
+                    </div>
+                    <div class="text-xs text-muted border-top border-slate-700/60 pt-2" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        <div>· 출처: 경찰청 / 열린데이터광장</div>
+                        <div class="font-bold text-primary">· 기준연도: 2024년</div>
+                    </div>
+                </div>
+
+                <!-- Dataset 2: Population -->
+                <div class="security-card flex flex-col justify-between" style="border-top: 3px solid var(--color-mint);">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-mint">주민등록 상주인구</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mint"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="text-2xl font-black text-heading my-1">938.5 <span class="unit text-xs text-muted">만 명</span></div>
+                        <p class="text-xs text-sub">인구 규모 편향을 제거하고 1만 명당 발생률을 산출하기 위한 핵심 분모</p>
+                    </div>
+                    <div class="text-xs text-muted border-top border-slate-700/60 pt-2" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        <div>· 출처: 행정안전부 인구통계</div>
+                        <div class="font-bold text-mint">· 기준연도: 2024년 (25개 구)</div>
+                    </div>
+                </div>
+
+                <!-- Dataset 3: CCTV -->
+                <div class="security-card flex flex-col justify-between" style="border-top: 3px solid var(--color-cyan);">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-cyan">방범 CCTV 현황</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-cyan"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                        </div>
+                        <div class="text-2xl font-black text-heading my-1">85,000+ <span class="unit text-xs text-muted">대</span></div>
+                        <p class="text-xs text-sub">자치구별 방범 CCTV 설치 수량 및 지능형 관제 센터 연계 지표</p>
+                    </div>
+                    <div class="text-xs text-muted border-top border-slate-700/60 pt-2" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        <div>· 출처: 서울시 스마트도시포털</div>
+                        <div class="font-bold text-cyan">· 기준연도: 2024년</div>
+                    </div>
+                </div>
+
+                <!-- Dataset 4: Streetlight & Safe Path -->
+                <div class="security-card flex flex-col justify-between" style="border-top: 3px solid var(--color-amber);">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="badge badge-amber">가로등 & 안심귀갓길</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        </div>
+                        <div class="text-2xl font-black text-heading my-1">19,291 <span class="unit text-xs text-muted">개소</span></div>
+                        <p class="text-xs text-sub">서울 자치구 관리 가로등 수 및 1,200여 개 안심귀갓길 공간 선형 데이터</p>
+                    </div>
+                    <div class="text-xs text-muted border-top border-slate-700/60 pt-2" style="font-size: 0.68rem; border-top: 1px solid var(--card-border);">
+                        <div>· 출처: 서울 열린데이터광장</div>
+                        <div class="font-bold text-amber">· 기준연도: 2023-2024년</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Warning / Governance Callout -->
+            <div class="security-card" style="padding: 0.75rem 1.1rem; background: var(--amber-badge-bg); border-color: var(--amber-badge-border); margin-top: 0.6rem;">
+                <div class="flex items-center gap-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <div class="text-xs leading-relaxed" style="color: #fde68a;">
+                        <strong class="font-bold text-amber-300">데이터 수집 거버넌스 및 시차(Time-lag) 고려 사항:</strong>
+                        가로등(2023년)과 범죄·인구(2024년) 데이터 간 1년의 시차가 존재함을 인지하고, 이를 무리한 인과관계로 단정하지 않고 공간 인프라 특성 지표로 정밀 분석하였습니다.
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. FOOTER SECTION -->
+        <footer class="slide-footer">
+            <div class="team-meta">
+                <div class="team-brand-pill"><span>공공데이터 통합 파이프라인</span></div>
+                <span class="text-xs text-sub">Data Integration: 4 Disparate Open Datasets</span>
+            </div>
+            <div class="footer-system-note">
+                <span>03 / 10</span>
+                <span>•</span>
+                <span>Data Collection</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<script src="../js/presentation.js"></script>
+<script src="../js/navigation.js"></script>
+<script src="../js/data.js"></script>
+
+</body>
+</html>
