@@ -22,6 +22,7 @@ from colors import score_to_color
 from constants import CCTV_PURPOSE_FIELDS, DETAIL_SCORE_FIELDS, ROUTE_MODES
 from data_access import (
     BASE_DIR,
+    CRIME_RATE_COLUMN,
     _polygon_centroid,
     get_cctv_stats,
     get_district_scores,
@@ -125,7 +126,12 @@ def render_district_detail(row, df, cctv_stats) -> None:
         st.metric(
             "안심지수",
             f"{row['안심지수']}점",
-            delta=f"서울 평균({seoul_avg}점) 대비 {diff:+.1f}점",
+            # delta 문자열은 "맨 앞 글자"가 +/- 인지만 보고 화살표 방향/색을 정한다. 원래
+            # "서울 평균(53.1점) 대비 -3.6점"처럼 설명을 숫자 앞에 붙였더니 맨 앞이 "서울"이라
+            # 음수여도 못 알아채고 항상 초록 위 화살표가 떴었다(버그). 그래서 부호 있는 숫자
+            # (f"{diff:+.1f}점")를 맨 앞에 두고, 설명 문구는 그 뒤에 붙인다 - 맨 앞 글자는
+            # 그대로 +/-라서 화살표/색은 정확하게 나오면서, 설명도 같은 칸 안에 그대로 보인다.
+            delta=f"{diff:+.1f}점 (서울 평균 {seoul_avg}점 대비)",
         )
         for label, col in DETAIL_SCORE_FIELDS:
             _render_score_bar(label, row[col])
@@ -241,10 +247,17 @@ def render_index_page(geo: dict, df, cctv_stats) -> None:
 
 
 def _facility_display_table(facilities, df):
-    """시설 찾기 표에 위도/경도 대신 구/주소/범죄안전 점수를 보여준다."""
-    score_by_district = dict(zip(df["구"], df["범죄안전_점수"]))
+    """시설 찾기 표에 위도/경도 대신 구/주소/범죄건수(인구 1만명당)를 보여준다.
+
+    원래는 정규화된 "범죄안전_점수"(0~100)를 보여줬는데, 정규화된 점수만 보면 숫자가 왜 그
+    값인지 감이 안 온다는 피드백이 있어서 원본 지표인 CRIME_RATE_COLUMN(인구 1만명당 범죄
+    건수, data_access.py 참고)으로 교체한다. 이 컬럼은 한글(alt) 스키마 파일에만 있는
+    원본 데이터라, 영문 스키마/더미 데이터/DB 경로일 땐 NaN으로 채워져 내려온다(표엔 빈 값으로
+    보임).
+    """
+    rate_by_district = dict(zip(df["구"], df[CRIME_RATE_COLUMN]))
     table = facilities[["이름", "구", "주소", "종류"]].copy()
-    table["범죄안전 점수"] = table["구"].map(score_by_district)
+    table[CRIME_RATE_COLUMN] = table["구"].map(rate_by_district)
     return table
 
 
@@ -297,6 +310,49 @@ def _run_map_js(js: str, tick_key: str) -> None:
     )
 
 
+def _render_route_summary_card(
+    destination_name: str, mode_label: str, distance_km: float, time_min: float
+) -> None:
+    """길찾기 결과(거리/소요시간)를 유리 카드로 강조해서 보여준다.
+
+    기존엔 st.caption()으로 띄웠는데, caption은 보조 설명용이라 회색 소글씨로 렌더링돼서
+    핵심 결과값(거리/시간)이 바로 위 안내 문구(마커 클릭 안내)와 똑같은 톤으로 묻혀버리는
+    문제가 있었다. GLASS_CARD_CSS와 같은 반투명 유리 카드 톤 + 길찾기 페이지 accent 색
+    (#1565C0)을 써서 다른 페이지와 디자인 언어는 맞추면서 결과값만 크게 강조한다.
+    """
+    st.markdown(
+        f"""
+        <div style="background: rgba(255,255,255,0.55); backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6);
+                    border-left: 4px solid #1565C0; border-radius: 16px; padding: 16px 20px;
+                    margin-top: 8px; box-shadow: 0 8px 24px rgba(30,58,95,0.08);">
+          <div style="color:rgba(20,20,20,0.55); font-size:12px; font-weight:600;
+                      text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+            목적지 경로 안내 ({mode_label})
+          </div>
+          <div style="color:#1B1B1B; font-size:16px; font-weight:700; margin-bottom:12px;">
+            내 위치 <span style="color:#1565C0;">➔</span> {destination_name}
+          </div>
+          <div style="display:flex; gap:28px;">
+            <div>
+              <div style="color:rgba(20,20,20,0.55); font-size:11px;">예상 거리</div>
+              <div style="color:#2E7D32; font-size:22px; font-weight:700;">
+                약 {distance_km}<span style="font-size:13px;"> km</span>
+              </div>
+            </div>
+            <div>
+              <div style="color:rgba(20,20,20,0.55); font-size:11px;">예상 소요 시간</div>
+              <div style="color:#1565C0; font-size:22px; font-weight:700;">
+                약 {time_min}<span style="font-size:13px;"> 분</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_route_page(facilities) -> None:
     """길찾기 페이지: 내 위치 → 가장 가까운(또는 직접 고른) 지구대/파출소까지 도보/자동차 경로."""
     st.header("길찾기")
@@ -334,8 +390,17 @@ def render_route_page(facilities) -> None:
             mode=ROUTE_MODES[mode_label],
         )
 
+    # 결과(거리/시간)를 지도보다 먼저 보여준다 - 지도까지 스크롤 안 해도 핵심 결과부터 바로
+    # 보이도록 순서를 바꿨다(기존엔 지도 아래에 있어서 결과를 보려면 지도를 다 지나야 했다).
+    if route_info:
+        _render_route_summary_card(
+            selected_name, mode_label, route_info["distance_km"], route_info["time_min"]
+        )
+    elif tmap_app_key:
+        st.caption("경로를 가져오지 못했습니다. TMAP 앱에 해당 이동수단 상품이 등록되어 있는지 확인하세요.")
+
     st.markdown(
-        '<div id="shieldus-route-map" style="width:100%;height:560px;"></div>',
+        '<div id="shieldus-route-map" style="width:100%;height:560px;margin-top:8px;"></div>',
         unsafe_allow_html=True,
     )
     _run_map_js(
@@ -349,14 +414,6 @@ def render_route_page(facilities) -> None:
         "_route_map_tick",
     )
     st.caption("지도 위 지구대/파출소 마커를 클릭(모바일은 터치)하면 주소가 복사됩니다.")
-
-    if route_info:
-        st.caption(
-            f"내 위치 → {selected_name} {mode_label} 경로: "
-            f"약 {route_info['distance_km']}km, {route_info['time_min']}분 예상"
-        )
-    elif tmap_app_key:
-        st.caption("경로를 가져오지 못했습니다. TMAP 앱에 해당 이동수단 상품이 등록되어 있는지 확인하세요.")
 
 
 def render_home_page(page_heatmap, page_facility, page_route) -> None:
