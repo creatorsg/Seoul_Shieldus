@@ -12,6 +12,7 @@ CCTV, 지구대·파출소, 여성안심귀갓길, 가로등, 범죄 통계 등 
 ---
 
 ## 데모
+<img width="1918" height="803" alt="image" src="https://github.com/user-attachments/assets/8d3ede73-d92f-4eb4-979c-ef568268bfb4" />
 
 ![서울쉴더스 실행 화면 데모](docs/demo.gif)
 
