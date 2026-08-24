@@ -1,6 +1,10 @@
 # 서울쉴더스 (Seoul Shieldus)
 
 **서울시 25개 자치구의 치안 인프라를 하나의 지표로 비교하고, 내 주변 안전 시설을 찾아보는 인터랙티브 웹 대시보드**
+<img width="1472" height="778" alt="image" src="https://github.com/user-attachments/assets/fe5e9a39-8ca5-4857-bfa5-74e5d384ac22" />
+<img width="1483" height="711" alt="image" src="https://github.com/user-attachments/assets/89abc146-eda2-4359-9f96-95bca9aabf56" />
+<img width="1542" height="485" alt="image" src="https://github.com/user-attachments/assets/ef3468fd-bffd-4ea8-bcb1-45c8540f238c" />
+
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.38%2B-FF4B4B?logo=streamlit&logoColor=white)
